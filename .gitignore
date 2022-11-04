@@ -50,3 +50,30 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Backup folder
+Backup/
+
+
+# Created by https://www.gitignore.io/api/psoccreator
+
+### PSoCCreator ###
+# Project Settings
+*.cywrk.*
+*.cyprj.*
+
+# Generated Assets and Resources
+Debug/
+Release/
+Export/
+*/codegentemp
+*/Generated_Source
+*_datasheet.pdf
+*_timing.html
+*.cycdx
+*.cyfit
+*.rpt
+*.svd
+*.log
+
+# End of https://www.gitignore.io/api/psoccreator
