@@ -1,15 +1,16 @@
 /**
  * @file    Ultra.h
  * @brief   Ultra sonic sensor header file
- * @details If you want to use Ultra sonic sensor methods, you need to include Ultra.h file.
-*/
+ * @details If you want to use Ultra sonic sensor methods, you need to include
+ * Ultra.h file.
+ */
 #ifndef ULTRA_H_
 #define ULTRA_H_
 
 // start ultrasonic sensor
-void Ultra_Start();
+void Ultra_Start ();
 
 // returns the distance in centimeters
-int Ultra_GetDistance(void);
+int Ultra_GetDistance (void);
 
 #endif

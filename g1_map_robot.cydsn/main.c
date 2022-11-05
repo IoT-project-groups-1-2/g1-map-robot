@@ -4,11 +4,12 @@
 * @details  <br><br>
     <p>
     <B>General</B><br>
-    You will use Pololu Zumo Shields for your robot project with CY8CKIT-059(PSoC 5LP) from Cypress semiconductor.This 
-    library has basic methods of various sensors and communications so that you can make what you want with them. <br> 
-    <br><br>
+    You will use Pololu Zumo Shields for your robot project with
+CY8CKIT-059(PSoC 5LP) from Cypress semiconductor.This library has basic methods
+of various sensors and communications so that you can make what you want with
+them. <br> <br><br>
     </p>
-    
+
     <p>
     <B>Sensors</B><br>
     &nbsp;Included: <br>
@@ -22,49 +23,51 @@
     &nbsp;APDS-9301: Ambient light sensor<br>
     &nbsp;IR LED <br><br><br>
     </p>
-    
+
     <p>
     <B>Communication</B><br>
     I2C, UART, Serial<br>
     </p>
 */
 
-#include <project.h>
-#include <stdio.h>
+#include "Accel_magnet.h"
+#include "Beep.h"
 #include "FreeRTOS.h"
-#include "task.h"
+#include "Gyro.h"
+#include "IR.h"
+#include "LSM303D.h"
 #include "Motor.h"
-#include "Ultra.h"
 #include "Nunchuk.h"
 #include "Reflectance.h"
-#include "Gyro.h"
-#include "Accel_magnet.h"
-#include "LSM303D.h"
-#include "IR.h"
-#include "Beep.h"
+#include "Ultra.h"
 #include "mqtt_sender.h"
-#include <time.h>
-#include <sys/time.h>
 #include "serial1.h"
-#include <unistd.h>
+#include "task.h"
+#include <project.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
 /**
  * @file    main.c
- * @brief   
- * @details  ** Enable global interrupt since Zumo library uses interrupts. **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
-*/
+ * @brief
+ * @details  ** Enable global interrupt since Zumo library uses interrupts.
+ * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
+ */
 
 #if 1
 // Hello World!
-void zmain(void)
+void
+zmain (void)
 {
-    printf("\nHello, World!\n");
+  printf ("\nHello, World!\n");
 
-    while(true)
+  while (true)
     {
-        vTaskDelay(100); // sleep (in an infinite loop)
+      vTaskDelay (100); // sleep (in an infinite loop)
     }
- }   
+}
 #endif
 
 #if 0
@@ -91,9 +94,8 @@ void zmain(void)
         BatteryLed_Write(!SW1_Read());
         vTaskDelay(100);
     }
- }   
+ }
 #endif
-
 
 #if 0
 //battery level//
@@ -127,7 +129,7 @@ void zmain(void)
         }
         vTaskDelay(500);
     }
- }   
+ }
 #endif
 
 #if 0 
@@ -206,9 +208,8 @@ void zmain(void)
             while(SW1_Read() == 0) vTaskDelay(10); // wait while button is being pressed
         }        
     }
- }   
+ }
 #endif
-
 
 #if 0
 //ultrasonic sensor//
@@ -222,7 +223,7 @@ void zmain(void)
         printf("distance = %d\r\n", d);
         vTaskDelay(200);
     }
-}   
+}
 #endif
 
 #if 0
@@ -246,10 +247,8 @@ void zmain(void)
         if(led) printf("Led is ON\n");
         else printf("Led is OFF\n");
     }    
- }   
+ }
 #endif
-
-
 
 #if 0
 //IR receiver - read raw data
@@ -278,9 +277,8 @@ void zmain(void)
             printf("%d %d\r\n",b, l);
         }
     }    
- }   
+ }
 #endif
-
 
 #if 0
 //reflectance
@@ -308,9 +306,8 @@ void zmain(void)
         
         vTaskDelay(200);
     }
-}   
+}
 #endif
-
 
 #if 0
 //motor
@@ -359,8 +356,8 @@ void zmain(void)
         printf("%8d %8d %8d\n",data.accX, data.accY, data.accZ);
         vTaskDelay(50);
     }
- }   
-#endif    
+ }
+#endif
 
 #if 0
 // MQTT test
@@ -382,9 +379,8 @@ void zmain(void)
         vTaskDelay(1000);
         ctr++;
     }
- }   
+ }
 #endif
-
 
 #if 0
 void zmain(void)
@@ -422,7 +418,7 @@ void zmain(void)
         }
         vTaskDelay(10);
     }
- }   
+ }
 
 #endif
 
@@ -458,7 +454,7 @@ void zmain(void)
         }
         vTaskDelay(50);
     }
- }   
+ }
 #endif
 
 /* [] END OF FILE */
