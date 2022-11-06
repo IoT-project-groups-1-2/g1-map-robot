@@ -35,25 +35,21 @@
         // connect the client
         client.connect({onSuccess:onConnect});
 
-
         // called when the client connects
         function onConnect() {
-        // Once a connection has been made, make a subscription and send a message.
+            // Once a connection has been made, make a subscription
             console.log("Connected");
             client.subscribe("Settings");
-            //message = new Paho.MQTT.Message(msg);
-            //message.destinationName = "Settings";
-            //client.send(message);
         }
 
-// called when the client loses its connection
+        // called when the client loses its connection
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
                 console.log("onConnectionLost:"+responseObject.errorMessage);
             }
         }
 
-// called when a message arrives
+        // called when a message arrives
         function onMessageArrived(message) {
             console.log("onMessageArrived:"+message.payloadString);
         }
@@ -73,60 +69,24 @@
                 btn_fw.focus();
                 btn_fw.click();
                 command = parseInt(btn_fw.value);
-                /*
-                let msg = {
-                    "direction": btn_fw.value,
-                    "speed": document.getElementById('speed').value,
-                    "duration": document.getElementById('dur').value
-                }
-                message = new Paho.MQTT.Message(JSON.stringify(msg));
-                message.destinationName = "Settings";
-                client.send(message);*/
             }
             if(e.code === 'KeyS'){
                 console.log('S pressed');
                 btn_bw.focus();
                 btn_bw.click();
                 command = parseInt(btn_bw.value);
-                /*
-                let msg = {
-                    "direction": btn_bw.value,
-                    "speed": document.getElementById('speed').value,
-                    "duration": document.getElementById('dur').value
-                }
-                message = new Paho.MQTT.Message(JSON.stringify(msg));
-                message.destinationName = "Settings";
-                client.send(message);*/
             }
             if(e.code === 'KeyD'){
                 console.log('D pressed');
                 btn_right.focus();
                 btn_right.click();
                 command = parseInt(btn_right.value);
-                /*
-                let msg = {
-                    "direction": parseInt(btn_right.value),
-                    "speed": parseInt(document.getElementById('speed').value),
-                    "duration": parseInt(document.getElementById('dur').value)
-                    }
-                message = new Paho.MQTT.Message(JSON.stringify(msg));
-                message.destinationName = "Settings";
-                client.send(message);*/
             }
             if(e.code === 'KeyA'){
                 console.log('A pressed');
                 btn_left.focus();
                 btn_left.click();
                 command = parseInt(btn_left.value);
-                /*
-                let msg = {
-                    "direction": btn_left.value,
-                    "speed": document.getElementById('speed').value,
-                    "duration": document.getElementById('dur').value
-                }
-                message = new Paho.MQTT.Message(JSON.stringify(msg));
-                message.destinationName = "Settings";
-                client.send(message);*/
             }
             let msg = {
                     "direction": command,
@@ -136,9 +96,8 @@
                 message = new Paho.MQTT.Message(JSON.stringify(msg));
                 message.destinationName = "Settings";
                 client.send(message);
-
         }
-        
+
     </script>
 </body>
 </html>
