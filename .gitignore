@@ -54,7 +54,6 @@ dkms.conf
 # Backup folder
 Backup/
 
-
 # Created by https://www.gitignore.io/api/psoccreator
 
 ### PSoCCreator ###
@@ -77,3 +76,9 @@ Export/
 *.log
 
 # End of https://www.gitignore.io/api/psoccreator
+
+#Mac
+.DS_Store
+
+#VScode
+.vscode
