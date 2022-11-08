@@ -3,55 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <link href='http://fonts.googleapis.com/css?family=Monoton' rel='stylesheet' type='text/css'>   
     <title>IoT Project</title>
     <style>
+        h1{
+            height: 100px;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            font-family: 'Monoton', sans-serif;
+            font-size: 55px;
+            font-weight: normal;
+        }
+        .buttons{
+            height: 210px;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 50px;
+        }
+        .button{
+            width: 70px;
+            height: 70px;
+            border-radius: 5px;
+            margin-left: 30px;
+            margin-right: 30px;
+            font-size: xx-large;
+            text-align: center;
+            background-color: darkgrey;
+            color: white;
+        }
         button:focus{
-            color: red;
+            color: white;
             background-color: black;
+        }
+        label{
+            font-size: 30px;
+            margin-left: 50px;
+        }
+        .slider{
+            text-align: center;
+            margin-top: 100px;
+        }
+        output{
+            font-size: 30px;
+        }
+        input[type=range]{
+            appearance: auto;
+            -webkit-appearance: none;
+            border-radius: 3px;
+            width: 130px;
+            height: 20px;
+            outline: none;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+            margin: 10px;
+            background: darkgrey;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: auto;
+            -webkit-appearance: none;
+            width:10px;
+            height: 35px;
+            border-radius: 3px;
+            background: black;
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.6);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
 </head>
 <body>
-    <button id="f" name="forward" value="0">Forward</button>
-    <button id="b" name="back" value="1">Back</button>
-    <button id="l" name="left" value="2">Left</button>
-    <button id="r" name="right" value="3">Right</button>
-    <h3>Speed</h3>
+    <h1>ROBOT CONTROLLER</h1>
+    <div class="buttons">
+        <button type="button" class="button" id="f" name="KeyW" value="0">&#129153;</button>
+        <br>    
+        <button type="button" class="button" id="l" name="KeyA" value="2">&#129152;</button>
+        <button type="button" class="button" id="r" name="KeyD" value="3">&#129154;</button>        
+        <br>
+        <button type="button" class="button" id="b" name="KeyS" value="1">&#129155;</button>        
+    </div>
+    <div class="slider">
+    <label for="speed" id="sp">Speed</label>
     <input type="range" id="speed" min="0" max="100"oninput="show_speed.value=this.value" value="0">
     <output id="show_speed">0</output>
-    <h3>Duration</h3>
-    <input type="range" id="dur" min="0" max="42949672957" oninput="show_dur.value=this.value" value="0">
+    <label for="dur">Duration</label>
+    <input type="range" id="dur" min="0" max="4294967295" oninput="show_dur.value=this.value" value="0">
     <output id="show_dur">0</output>
-
+    </div>  
     <script>
-        const client = new Paho.MQTT.Client("127.0.0.1", Number(9001), "web");
-
+        const client = new Paho.MQTT.Client("192.168.1.136", Number(9001), "web");
+        let key;
+        
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
         // connect the client
-        client.connect({onSuccess:onConnect});
+        client.connect({onSuccess:onConnect,
+                        userName: 'SmartIotMQTT',
+                        password: 'SmartIot'});
 
         // called when the client connects
         function onConnect() {
             // Once a connection has been made, make a subscription
             console.log("Connected");
-            client.subscribe("Settings");
+            client.subscribe("location");
         }
 
         // called when the client loses its connection
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                console.log("onConnectionLost:"+responseObject.errorMessage);
+                console.log("onConnectionLost:"+ responseObject.errorMessage);
             }
         }
 
         // called when a message arrives
         function onMessageArrived(message) {
-            console.log("onMessageArrived:"+message.payloadString);
+            console.log("onMessageArrived:"+ message.payloadString);
         }
         
 
@@ -60,42 +126,65 @@
         btn_left = document.getElementById('l');
         btn_right = document.getElementById('r');
 
+        btn_fw.addEventListener('click', ()=>{
+            key = btn_fw.name;
+            move(key);
+        })
+        btn_bw.addEventListener('click', ()=>{
+            key = btn_bw.name;
+            move(key);
+        })
+        btn_left.addEventListener('click', ()=>{
+            key = btn_left.name;
+            move(key);
+        })
+        btn_right.addEventListener('click', ()=>{
+            key = btn_right.name;
+            move(key);
+        })
+
         document.body.addEventListener('keydown', getKey);
 
         function getKey(e){
+            key = e.code;
+            move(key);
+        }
+
+        function move(key){
             let command;
-            if(e.code === 'KeyW'){
-                console.log('W pressed');
-                btn_fw.focus();
-                btn_fw.click();
-                command = parseInt(btn_fw.value);
+            switch(key){
+                case 'KeyW':
+                    console.log('W pressed');
+                    btn_fw.focus();
+                    command = parseInt(btn_fw.value);
+                break;
+                case 'KeyS':
+                    console.log('S pressed');
+                    btn_bw.focus();
+                    command = parseInt(btn_bw.value);
+                break;
+                case 'KeyD':
+                    console.log('D pressed');
+                    btn_right.focus();
+                    command = parseInt(btn_right.value);
+                break;
+                case 'KeyA':
+                    console.log('A pressed');
+                    btn_left.focus();
+                    command = parseInt(btn_left.value);
+                break;
             }
-            if(e.code === 'KeyS'){
-                console.log('S pressed');
-                btn_bw.focus();
-                btn_bw.click();
-                command = parseInt(btn_bw.value);
-            }
-            if(e.code === 'KeyD'){
-                console.log('D pressed');
-                btn_right.focus();
-                btn_right.click();
-                command = parseInt(btn_right.value);
-            }
-            if(e.code === 'KeyA'){
-                console.log('A pressed');
-                btn_left.focus();
-                btn_left.click();
-                command = parseInt(btn_left.value);
-            }
+            
             let msg = {
                     "direction": command,
+                    //"speed": speed,
+                    //"duration": duration
                     "speed": parseInt(document.getElementById('speed').value),
                     "duration": parseInt(document.getElementById('dur').value)
                     }
-                message = new Paho.MQTT.Message(JSON.stringify(msg));
-                message.destinationName = "Settings";
-                client.send(message);
+            message = new Paho.MQTT.Message(JSON.stringify(msg));
+            message.destinationName = "settings";
+            client.send(message);
         }
 
     </script>
