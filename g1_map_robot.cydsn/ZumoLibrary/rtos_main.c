@@ -41,6 +41,7 @@
 #include "serial1.h"
 #include "simulator.h"
 #include "zumo_config.h"
+#include "json_str.h"
 
 #ifndef START_MQTT
 #define START_MQTT 0
@@ -58,6 +59,7 @@ static void
 start_zmain (void *p)
 {
   (void)p; // we don't use this parameter
+  json_command hel = {0, 0, 0};
   zmain ();
   printf ("\n\n\nERROR - ZMAIN ENDED!!!\n\n");
   vTaskSuspend (NULL);
