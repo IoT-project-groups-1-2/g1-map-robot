@@ -36,6 +36,7 @@ them. <br> <br><br>
 #include "Gyro.h"
 #include "IR.h"
 #include "LSM303D.h"
+#include "MQTTClient.h"
 #include "Motor.h"
 #include "Nunchuk.h"
 #include "Reflectance.h"
@@ -49,7 +50,6 @@ them. <br> <br><br>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
-#include "MQTTClient.h"
 /**
  * @file    main.c
  * @brief
@@ -362,36 +362,39 @@ void zmain(void)
 
 #if 1
 // MQTT test
-    void handler (MessageData *msg)
-    {
-        char buf[81];
-       memcpy(buf, msg->message->payload, msg->message->payloadlen);
-       buf[msg->message->payloadlen] = 0;
-       printf("%s\n", buf);
-    }
-    
-    
-
-void zmain(void)
+void
+handler (MessageData *msg)
 {
-    int ctr = 0;
+  char buf[81];
+  memcpy (buf, msg->message->payload, msg->message->payloadlen);
+  buf[msg->message->payloadlen] = 0;
+  printf ("%s\n", buf);
+}
 
-    printf("\nBoot\n");
-    send_mqtt("Zumo01/debug", "Boot");
+void
+zmain (void)
+{
+  int ctr = 0;
 
-    //BatteryLed_Write(1); // Switch led on 
-    BatteryLed_Write(0); // Switch led off 
+  printf ("\nBoot\n");
+  send_mqtt ("Zumo01/debug", "Boot");
 
-    while(true)
+  // BatteryLed_Write(1); // Switch led on
+  BatteryLed_Write (0); // Switch led off
+
+  while (true)
     {
-        printf("Ctr: %d, Button: %d\n", ctr, SW1_Read());
-        print_mqtt("location", "hey, my location: %d", ctr);
+      //printf ("Ctr: %d, Button: %d\n", ctr, SW1_Read ());
+      char status_message[400] = { 0 };
+      const int message_len
+          = snprintf (status_message, 400, "{\"status\":%d}", 1);
+      print_mqtt ("t_status", "%.*s", message_len, status_message);
 
-        vTaskDelay(1000);
-        
-        ctr++;
+      vTaskDelay (1000);
+
+      ctr++;
     }
- }
+}
 #endif
 
 #if 0
