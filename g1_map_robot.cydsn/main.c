@@ -50,6 +50,7 @@ them. <br> <br><br>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include "MQTTClient.h"
 /**
  * @file    main.c
  * @brief
