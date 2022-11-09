@@ -12,6 +12,7 @@
 
 #include "MQTTClient.h"
 #include "MQTTFreeRTOS.h"
+#include "json_str.h"
 #include "mqtt_sender.h"
 #include "zumo_config.h"
 
@@ -27,6 +28,7 @@ typedef struct mqtt_message_
 static QueueHandle_t msg_q;
 static QueueHandle_t buf_q;
 static char buffers[MAX_MESSAGE][BUFFER_SIZE];
+static json_command *mqtt_json_cmd;
 
 void
 MQTTSendTaskInit (void)
@@ -37,11 +39,28 @@ MQTTSendTaskInit (void)
 
 #if ZUMO_SIMULATOR == 0
 
-void handler (MessageData *msg);
+// MQTT test
+static void
+handler (MessageData *msg)
+{
+  char json_raw[JSON_STR_SEND_MAX_STRING_LEN];
+  memcpy (json_raw, msg->message->payload, msg->message->payloadlen);
+  json_raw[msg->message->payloadlen] = 0;
+  json_str_int_from_context (json_raw, "direction", mqtt_json_cmd->direction);
+  json_str_int_from_context (json_raw, "speed", mqtt_json_cmd->speed);
+  json_str_int_from_context (json_raw, "duration", mqtt_json_cmd->duration);
+  printf ("Current:\n"
+          "Dir: %d\n"
+          "Speed: %d\n"
+          "Duration: %d\n",
+          mqtt_json_cmd->direction, mqtt_json_cmd->speed,
+          mqtt_json_cmd->duration);
+}
+
 void
 MQTTSendTask (void *pvParameters)
 {
-  (void)pvParameters;
+  mqtt_json_cmd = (json_command *)pvParameters;
   MQTTClient client;
   Network network;
   unsigned char sendbuf[128], readbuf[128];
@@ -75,10 +94,10 @@ MQTTSendTask (void *pvParameters)
 
   if ((rc = MQTTConnect (&client, &connectData)) != 0)
     printf ("Return code from MQTT connect is %d\n", rc);
-  else 
+  else
     printf ("MQTT Connected\n");
-    
-    MQTTSubscribe(&client, "settings", QOS0, handler);
+
+  MQTTSubscribe (&client, "settings", QOS0, handler);
   while (true)
     {
       mqtt_message_t msg;
