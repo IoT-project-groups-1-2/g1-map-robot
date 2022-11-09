@@ -50,7 +50,9 @@ them. <br> <br><br>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include "json_str.h"
 /**
+ * 
  * @file    main.c
  * @brief
  * @details  ** Enable global interrupt since Zumo library uses interrupts.
@@ -361,18 +363,9 @@ void zmain(void)
 #endif
 
 #if 1
-// MQTT test
-void
-handler (MessageData *msg)
-{
-  char buf[81];
-  memcpy (buf, msg->message->payload, msg->message->payloadlen);
-  buf[msg->message->payloadlen] = 0;
-  printf ("%s\n", buf);
-}
 
 void
-zmain (void)
+zmain (json_command* cmd)
 {
   int ctr = 0;
 
@@ -389,7 +382,7 @@ zmain (void)
       const int message_len
           = snprintf (status_message, 400, "{\"status\":%d}", 1);
       print_mqtt ("t_status", "%.*s", message_len, status_message);
-
+      json_str_handle_cmd(cmd);
       vTaskDelay (1000);
 
       ctr++;

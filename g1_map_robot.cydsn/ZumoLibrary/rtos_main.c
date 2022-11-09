@@ -36,18 +36,18 @@
 #include "task.h"
 
 #include "debug_uart.h"
+#include "json_str.h"
 #include "mqtt_sender.h"
 #include "serial.h"
 #include "serial1.h"
 #include "simulator.h"
 #include "zumo_config.h"
-#include "json_str.h"
 
 #ifndef START_MQTT
 #define START_MQTT 0
 #endif
 
-extern void zmain (void);
+extern void zmain (json_command *cmd);
 
 /*
  * Installs the RTOS interrupt handlers and starts the peripherals.
@@ -58,9 +58,8 @@ static void prvHardwareSetup (void);
 static void
 start_zmain (void *p)
 {
-  (void)p; // we don't use this parameter
-  json_command hel = {0, 0, 0};
-  zmain ();
+  json_command *cmd = (json_command *)p;
+  zmain (cmd);
   printf ("\n\n\nERROR - ZMAIN ENDED!!!\n\n");
   vTaskSuspend (NULL);
 }
@@ -74,18 +73,20 @@ main (void)
   /* Task initializations */
   vSerial1PortInitMinimal (256);
   RetargetInit ();
+  json_command *cmd;
 
   // DebugUartTaskInit();
   //( void ) xTaskCreate( DebugUartTask, "DbgUart", configMINIMAL_STACK_SIZE,
-  //NULL, tskIDLE_PRIORITY + 1, NULL ); ( void ) xTaskCreate( DebugCommandTask,
-  //"DbgCmd", configMINIMAL_STACK_SIZE * 3, NULL, tskIDLE_PRIORITY + 1, NULL );
+  // NULL, tskIDLE_PRIORITY + 1, NULL ); ( void ) xTaskCreate(
+  // DebugCommandTask, "DbgCmd", configMINIMAL_STACK_SIZE * 3, NULL,
+  // tskIDLE_PRIORITY + 1, NULL );
 
-  (void)xTaskCreate (start_zmain, "Zumo", configMINIMAL_STACK_SIZE * 10, NULL,
+  (void)xTaskCreate (start_zmain, "Zumo", configMINIMAL_STACK_SIZE * 10, cmd,
                      tskIDLE_PRIORITY + 1, NULL);
 #if START_MQTT == 1
   MQTTSendTaskInit ();
   (void)xTaskCreate (MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10,
-                     NULL, tskIDLE_PRIORITY + 2, NULL);
+                     cmd, tskIDLE_PRIORITY + 2, NULL);
 #endif
 #if ZUMO_SIMULATOR == 1
   SimulatorTaskInit ();
