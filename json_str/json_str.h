@@ -13,16 +13,25 @@
 #define JSON_STR_SEND_MAX_STRING_LEN 1024
 #define JSON_STR_NULL ((char *)0)
 
+typedef enum _md
+{
+  M_DIR_FORWARD,
+  M_DIR_BACKWARD,
+  M_DIR_LEFT,
+  M_DIR_RIGHT
+} MotorDirection;
+
 typedef struct json_command
 {
   unsigned int duration;
   int speed;
-  int direction;
+  MotorDirection direction;
 } json_command;
 
 bool json_str_int_from_context (char *json_str, const char *context,
                                 int *dest);
 bool json_str_str_from_context (char *json_str, const char *context,
                                 char *dest);
+void json_str_handle_cmd (json_command *cmd);
 
 #endif // JSON_JSON_STRING_H
