@@ -49,6 +49,7 @@ them. <br> <br><br>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
+#include "MQTTClient.h"
 /**
  * @file    main.c
  * @brief
@@ -56,7 +57,7 @@ them. <br> <br><br>
  * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
  */
 
-#if 1
+#if 0
 // Hello World!
 void
 zmain (void)
@@ -359,8 +360,18 @@ void zmain(void)
  }
 #endif
 
-#if 0
+#if 1
 // MQTT test
+    void handler (MessageData *msg)
+    {
+        char buf[81];
+       memcpy(buf, msg->message->payload, msg->message->payloadlen);
+       buf[msg->message->payloadlen] = 0;
+       printf("%s\n", buf);
+    }
+    
+    
+
 void zmain(void)
 {
     int ctr = 0;
@@ -374,9 +385,10 @@ void zmain(void)
     while(true)
     {
         printf("Ctr: %d, Button: %d\n", ctr, SW1_Read());
-        print_mqtt("Zumo01/debug", "Ctr: %d, Button: %d", ctr, SW1_Read());
+        print_mqtt("location", "hey, my location: %d", ctr);
 
         vTaskDelay(1000);
+        
         ctr++;
     }
  }
