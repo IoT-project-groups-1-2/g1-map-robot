@@ -36,6 +36,8 @@ MQTTSendTaskInit (void)
 }
 
 #if ZUMO_SIMULATOR == 0
+
+void handler (MessageData *msg);
 void
 MQTTSendTask (void *pvParameters)
 {
@@ -73,9 +75,10 @@ MQTTSendTask (void *pvParameters)
 
   if ((rc = MQTTConnect (&client, &connectData)) != 0)
     printf ("Return code from MQTT connect is %d\n", rc);
-  else
+  else 
     printf ("MQTT Connected\n");
-
+    
+    MQTTSubscribe(&client, "settings", QOS0, handler);
   while (true)
     {
       mqtt_message_t msg;
