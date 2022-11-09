@@ -20,10 +20,10 @@ json_str_handle_cmd (json_command *cmd)
       motor_backward (cmd->speed, cmd->duration);
       break;
     case M_DIR_LEFT:
-      motor_turn (cmd->speed, 0, cmd->duration);
+      motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
       break;
     case M_DIR_RIGHT:
-      motor_turn (0, cmd->speed, cmd->duration);
+      motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
       break;
     default:
       break;

@@ -46,9 +46,14 @@ handler (MessageData *msg)
   char json_raw[JSON_STR_SEND_MAX_STRING_LEN];
   memcpy (json_raw, msg->message->payload, msg->message->payloadlen);
   json_raw[msg->message->payloadlen] = 0;
-  json_str_int_from_context (json_raw, "direction", mqtt_json_cmd->direction);
-  json_str_int_from_context (json_raw, "speed", mqtt_json_cmd->speed);
-  json_str_int_from_context (json_raw, "duration", mqtt_json_cmd->duration);
+  printf("%.*s\n", msg->message->payloadlen, json_raw);
+  int dir, speed, dur;
+  json_str_int_from_context (json_raw, "direction", &dir);
+  json_str_int_from_context (json_raw, "speed", &speed);
+  json_str_int_from_context (json_raw, "duration", &dur);
+  mqtt_json_cmd->direction = (MotorDirection)dir;
+  mqtt_json_cmd->speed = speed;
+  mqtt_json_cmd->duration = dur;
   printf ("Current:\n"
           "Dir: %d\n"
           "Speed: %d\n"

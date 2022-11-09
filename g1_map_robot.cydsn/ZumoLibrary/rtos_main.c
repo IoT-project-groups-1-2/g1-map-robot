@@ -81,12 +81,12 @@ main (void)
   // DebugCommandTask, "DbgCmd", configMINIMAL_STACK_SIZE * 3, NULL,
   // tskIDLE_PRIORITY + 1, NULL );
 
-  (void)xTaskCreate (start_zmain, "Zumo", configMINIMAL_STACK_SIZE * 10, cmd,
+  (void)xTaskCreate (start_zmain, "Zumo", configMINIMAL_STACK_SIZE * 10, &cmd,
                      tskIDLE_PRIORITY + 1, NULL);
 #if START_MQTT == 1
   MQTTSendTaskInit ();
   (void)xTaskCreate (MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10,
-                     cmd, tskIDLE_PRIORITY + 2, NULL);
+                     &cmd, tskIDLE_PRIORITY + 2, NULL);
 #endif
 #if ZUMO_SIMULATOR == 1
   SimulatorTaskInit ();
