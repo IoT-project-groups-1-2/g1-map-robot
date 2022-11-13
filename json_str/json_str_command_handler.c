@@ -13,7 +13,7 @@ json_str_handle_cmd (json_command *cmd)
   motor_stop ();
   motor_start ();
 
-  if(cmd->fmauto)
+  if(cmd->mode)
   {
     auto_handle(cmd);
   }

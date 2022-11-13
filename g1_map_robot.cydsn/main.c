@@ -67,7 +67,7 @@ zmain (json_command* cmd)
   send_mqtt ("Zumo01/debug", "Boot");
   Ultra_Start(); //TEMP
   #if START_MQTT == 0
-    cmd->fmauto = true;
+    cmd->mode = true;
   #endif
 
   while (SW1_Read() == 1); //Don't start without a button press.
