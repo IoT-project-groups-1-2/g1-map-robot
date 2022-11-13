@@ -8,7 +8,7 @@
 
 /* Change the following definition to 0 to disable MQTT and to 1 to enable MQTT
  */
-#define START_MQTT 1
+#define START_MQTT 0
 
 /* The following definitions must all be in double quotes */
 #define NETWORK_SSID "DavyJones"
