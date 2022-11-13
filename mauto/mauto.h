@@ -1,6 +1,7 @@
 #ifndef MAUTO_H
 #define MAUTO_H
 
+#include <stdbool.h>
 #include "Accel_magnet.h"
 #include "Beep.h"
 #include "Motor.h"
@@ -8,12 +9,6 @@
 #include "json_str.h"
 
 void
-auto_start();
-
-void
 auto_handle(json_command *cmd);
-
-void
-auto_stop();
 
 #endif //MAUTO_H
