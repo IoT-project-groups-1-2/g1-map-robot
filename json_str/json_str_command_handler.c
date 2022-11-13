@@ -1,5 +1,6 @@
 #include "Motor.h"
 #include "json_str.h"
+#include "mauto.h"
 
 /**
  * @brief Handle the command stucture & execute
@@ -11,7 +12,14 @@ json_str_handle_cmd (json_command *cmd)
 {
   motor_stop ();
   motor_start ();
-  switch (cmd->direction)
+
+  if(cmd->fmauto)
+  {
+    auto_handle(cmd);
+  }
+  else
+  {
+    switch (cmd->direction)
     {
     case M_DIR_FORWARD:
       motor_forward (cmd->speed, cmd->duration);
@@ -28,4 +36,5 @@ json_str_handle_cmd (json_command *cmd)
     default:
       break;
     }
+  }
 }
