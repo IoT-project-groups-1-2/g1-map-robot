@@ -72,6 +72,30 @@ motor_turn (uint8 l_speed, uint8 r_speed, uint32 delay)
 }
 
 /**
+ * @brief    Moving motors to make a left tank turn.
+ * @details  Sets backwards mode to left motor.
+ * @param    uint8 speed : speed value
+ * @param    uint32 delay : delay time
+ */
+void
+motor_tank_turn_left (uint8 speed, uint32 delay)
+{
+  SetMotors (1, 0, speed, speed, delay);
+}
+
+/**
+ * @brief    Moving motors to make a right tank turn.
+ * @details  Sets backwards mode to right motor.
+ * @param    uint8 speed : speed value
+ * @param    uint32 delay : delay time
+ */
+void
+motor_tank_turn_right (uint8 speed, uint32 delay)
+{
+  SetMotors (0, 1, speed, speed, delay);
+}
+
+/**
  * @brief    Moving motors backward
  * @details  setting backward mode to each motors and gives same speed to each
  * side of PWM
