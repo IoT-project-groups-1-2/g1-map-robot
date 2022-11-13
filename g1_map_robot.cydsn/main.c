@@ -58,10 +58,6 @@ them. <br> <br><br>
  * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
  */
 
-
-
-#if 0
-
 void
 zmain (json_command* cmd)
 {
@@ -69,6 +65,12 @@ zmain (json_command* cmd)
 
   printf ("\nBoot\n");
   send_mqtt ("Zumo01/debug", "Boot");
+  Ultra_Start(); //TEMP
+  #if START_MQTT == 0
+    cmd->fmauto = true;
+  #endif
+
+  while (SW1_Read() == 1); //Don't start without a button press.
 
   // BatteryLed_Write(1); // Switch led on
   BatteryLed_Write (0); // Switch led off
@@ -90,7 +92,6 @@ zmain (json_command* cmd)
       ctr++;
     }
 }
-#endif
 
 #if LIDAR
 void
