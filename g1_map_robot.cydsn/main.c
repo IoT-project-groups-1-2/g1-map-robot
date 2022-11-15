@@ -66,31 +66,28 @@ them. <br> <br><br>
 void
 zmain (json_command* cmd)
 {
-  int ctr = 0;
-
   printf ("\nBoot\n");
-  send_mqtt ("Zumo01/debug", "Boot");
-
-  // BatteryLed_Write(1); // Switch led on
-  BatteryLed_Write (0); // Switch led off
-      char status_message[400] = { 0 };
-      const int message_len
-          = snprintf (status_message, 400, "{\"status\":%d}", 1);
-  print_mqtt ("t_status", "%.*s", message_len, status_message);
-  while (true)
-    {
-      //printf ("Ctr: %d, Button: %d\n", ctr, SW1_Read ());
-
-      json_str_handle_cmd(cmd);
-
-     if(cmd){
-      vTaskDelay (cmd->duration);
-      } else{
-      vTaskDelay(500);
+  int old = 0, count = 0, distance = 0;
+  bool distData = true;
+  UART_3_Start();
+  while(true) {
+    count = UART_3_GetRxBufferSize();
+    if(count == old && count > 0){
+        // printf("%6d ", xTaskGetTickCount());
+        uint8 bytes [count];
+        for(int i = 0; i < count; ++i) {
+            bytes[i] = UART_3_GetByte();
+        }
+        if(count == 9 && bytes[0] == 0x59 && bytes[1] == 0x59){
+            distance = bytes[2] | (bytes[3] << 8);
+            printf("%d\n", distance);
+        }
     }
-      ctr++;
-    }
+    old = count;
+    vTaskDelay(1);
 }
+}
+
 #endif
 
 #if 0
