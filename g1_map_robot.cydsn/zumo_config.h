@@ -4,6 +4,7 @@
 /* Change the following definition to 0 to run in normal mode and to 1 to
  * enable simulator mode  */
 #define ZUMO_SIMULATOR 0
+#define LIDAR 1
 
 /* Change the following definition to 0 to disable MQTT and to 1 to enable MQTT
  */
