@@ -9,7 +9,6 @@ CY8CKIT-059(PSoC 5LP) from Cypress semiconductor.This library has basic methods
 of various sensors and communications so that you can make what you want with
 them. <br> <br><br>
     </p>
-
     <p>
     <B>Sensors</B><br>
     &nbsp;Included: <br>
@@ -23,7 +22,6 @@ them. <br> <br><br>
     &nbsp;APDS-9301: Ambient light sensor<br>
     &nbsp;IR LED <br><br><br>
     </p>
-
     <p>
     <B>Communication</B><br>
     I2C, UART, Serial<br>
@@ -51,6 +49,7 @@ them. <br> <br><br>
 #include <time.h>
 #include <unistd.h>
 #include "json_str.h"
+#include "zumo_config.h"
 /**
  * 
  * @file    main.c
@@ -61,108 +60,65 @@ them. <br> <br><br>
 
 
 
-#if 1
+#if 0
 
 void
 zmain (json_command* cmd)
 {
+  int ctr = 0;
+
   printf ("\nBoot\n");
-  int old = 0, count = 0, distance = 0;
-  bool distData = true;
-  UART_3_Start();
-  while(true) {
-    count = UART_3_GetRxBufferSize();
-    if(count == old && count > 0){
-        // printf("%6d ", xTaskGetTickCount());
-        uint8 bytes [count];
-        for(int i = 0; i < count; ++i) {
-            bytes[i] = UART_3_GetByte();
-        }
-        if(count == 9 && bytes[0] == 0x59 && bytes[1] == 0x59){
-            distance = bytes[2] | (bytes[3] << 8);
-            printf("%d\n", distance);
-        }
-    }
-    old = count;
-    vTaskDelay(1);
-}
-}
+  send_mqtt ("Zumo01/debug", "Boot");
 
-#endif
-
-#if 0
-void zmain(void)
-{    
-    struct accData_ data;
-    struct sensors_ ref;
-    struct sensors_ dig;
-    
-    printf("MQTT and sensor test...\n");
-
-    if(!LSM303D_Start()){
-        printf("LSM303D failed to initialize!!! Program is Ending!!!\n");
-        vTaskSuspend(NULL);
-    }
-    else {
-        printf("Accelerometer Ok...\n");
-    }
-    
-    int ctr = 0;
-    reflectance_start();
-    while(true)
+  // BatteryLed_Write(1); // Switch led on
+  BatteryLed_Write (0); // Switch led off
+      char status_message[400] = { 0 };
+      const int message_len
+          = snprintf (status_message, 400, "{\"status\":%d}", 1);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+  while (true)
     {
-        LSM303D_Read_Acc(&data);
-        // send data when we detect a hit and at 10 second intervals
-        if(data.accX > 1500 || ++ctr > 1000) {
-            printf("Acc: %8d %8d %8d\n",data.accX, data.accY, data.accZ);
-            print_mqtt("Zumo01/acc", "%d,%d,%d", data.accX, data.accY, data.accZ);
-            reflectance_read(&ref);
-            printf("Ref: %8d %8d %8d %8d %8d %8d\n", ref.L3, ref.L2, ref.L1, ref.R1, ref.R2, ref.R3);       
-            print_mqtt("Zumo01/ref", "%d,%d,%d,%d,%d,%d", ref.L3, ref.L2, ref.L1, ref.R1, ref.R2, ref.R3);
-            reflectance_digital(&dig);
-            printf("Dig: %8d %8d %8d %8d %8d %8d\n", dig.L3, dig.L2, dig.L1, dig.R1, dig.R2, dig.R3);
-            print_mqtt("Zumo01/dig", "%d,%d,%d,%d,%d,%d", dig.L3, dig.L2, dig.L1, dig.R1, dig.R2, dig.R3);
-            ctr = 0;
-        }
-        vTaskDelay(10);
+      //printf ("Ctr: %d, Button: %d\n", ctr, SW1_Read ());
+
+      json_str_handle_cmd(cmd);
+
+     if(cmd){
+      vTaskDelay (cmd->duration);
+      } else{
+      vTaskDelay(500);
     }
- }
+      ctr++;
+    }
+}
+#endif
+
+#if LIDAR
+void
+zmain (json_command* cmd)
+{
+    printf ("\nBoot\n");
+    int old = 0, count = 0, distance = 0;
+    bool distData = true;
+    UART_3_Start();
+    while(true) {
+        count = UART_3_GetRxBufferSize();
+        if(count == old && count > 0){
+            // printf("%6d ", xTaskGetTickCount());
+            uint8 bytes [count];
+            for(int i = 0; i < count; ++i) {
+                bytes[i] = UART_3_GetByte();
+            }
+            if(count == 9 && bytes[0] == 0x59 && bytes[1] == 0x59){
+                distance = bytes[2] | (bytes[3] << 8);
+                printf("%d\n", distance);
+            }
+        }
+        old = count;
+        vTaskDelay(1);
+    }
+}
 
 #endif
 
-#if 0
-void zmain(void)
-{    
-    RTC_Start(); // start real time clock
-    
-    RTC_TIME_DATE now;
-
-    // set current time
-    now.Hour = 12;
-    now.Min = 34;
-    now.Sec = 56;
-    now.DayOfMonth = 25;
-    now.Month = 9;
-    now.Year = 2018;
-    RTC_WriteTime(&now); // write the time to real time clock
-
-    while(true)
-    {
-        if(SW1_Read() == 0) {
-            // read the current time
-            RTC_DisableInt(); /* Disable Interrupt of RTC Component */
-            now = *RTC_ReadTime(); /* copy the current time to a local variable */
-            RTC_EnableInt(); /* Enable Interrupt of RTC Component */
-
-            // print the current time
-            printf("%2d:%02d.%02d\n", now.Hour, now.Min, now.Sec);
-            
-            // wait until button is released
-            while(SW1_Read() == 0) vTaskDelay(50);
-        }
-        vTaskDelay(50);
-    }
- }
-#endif
 
 /* [] END OF FILE */
