@@ -10,7 +10,7 @@ static bool avoiding = false;
 void
 auto_handle(json_command *cmd)
 {
-  uint8_t dist = Ultra_GetDistance();
+  uint8_t dist = 0;
   printf("\nDistance is: %d\n", dist);
 
   if(dist <= 25)
