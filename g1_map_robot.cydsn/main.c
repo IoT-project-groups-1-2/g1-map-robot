@@ -65,7 +65,7 @@ zmain (json_command* cmd)
 
   printf ("\nBoot\n");
   send_mqtt ("Zumo01/debug", "Boot");
-  Ultra_Start(); //TEMP
+
   #if START_MQTT == 0
     cmd->mode = true;
   #endif
