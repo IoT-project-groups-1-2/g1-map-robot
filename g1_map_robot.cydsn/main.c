@@ -50,6 +50,7 @@ them. <br> <br><br>
 #include <unistd.h>
 #include "json_str.h"
 #include "zumo_config.h"
+#include "Lidar.h"
 /**
  * 
  * @file    main.c
@@ -97,26 +98,23 @@ zmain (json_command* cmd)
 void
 zmain (json_command* cmd)
 {
-    printf ("\nBoot\n");
-    int old = 0, count = 0, distance = 0;
-    bool distData = true;
-    UART_3_Start();
-    while(true) {
-        count = UART_3_GetRxBufferSize();
-        if(count == old && count > 0){
-            // printf("%6d ", xTaskGetTickCount());
-            uint8 bytes [count];
-            for(int i = 0; i < count; ++i) {
-                bytes[i] = UART_3_GetByte();
-            }
-            if(count == 9 && bytes[0] == 0x59 && bytes[1] == 0x59){
-                distance = bytes[2] | (bytes[3] << 8);
-                printf("%d\n", distance);
-            }
-        }
-        old = count;
-        vTaskDelay(1);
+  printf ("\nBoot\n");
+  int distance = 0;
+  uint64_t ticks = 0;
+  uint64_t res = 0;
+  Lidar_start();
+  while(true)
+  {
+    ticks++;
+    distance = Lidar_get_distance();
+    if(distance != -1)
+    {
+      res++;
+      printf("(%llu:%llu) Distance = %d\r\n", ticks, res, distance);
     }
+    //if(distance != -1) printf("Distance = %d\r\n", distance);
+    vTaskDelay(1);
+  }
 }
 
 #endif
