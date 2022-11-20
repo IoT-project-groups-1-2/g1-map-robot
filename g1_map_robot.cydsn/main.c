@@ -65,11 +65,8 @@ zmain (json_command* cmd)
   int ctr = 0;
 
   printf ("\nBoot\n");
+  Lidar_start();
   send_mqtt ("Zumo01/debug", "Boot");
-
-  #if START_MQTT == 0
-    cmd->mode = true;
-  #endif
 
   while (SW1_Read() == 1); //Don't start without a button press.
 
@@ -82,7 +79,10 @@ zmain (json_command* cmd)
   while (true)
     {
       //printf ("Ctr: %d, Button: %d\n", ctr, SW1_Read ());
-
+      #if TEST == 1
+        cmd->mode = true;
+        cmd->duration = 10;
+      #endif
       json_str_handle_cmd(cmd);
 
      if(cmd){
