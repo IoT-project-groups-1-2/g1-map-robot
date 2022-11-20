@@ -10,7 +10,9 @@ static bool avoiding = false;
 void
 auto_handle(json_command *cmd)
 {
-  uint8_t dist = 0;
+  int dist = Lidar_get_distance();
+  if (dist == -1) return;
+
   printf("\nDistance is: %d\n", dist);
 
   if(dist <= 25)
@@ -18,9 +20,10 @@ auto_handle(json_command *cmd)
     printf("\nObstacle.\n");
     if(!avoiding) motor_backward(70, 400);
     avoiding = true;
-    motor_tank_turn_left(70, 100);
+    motor_tank_turn_left(70, 500);
   }
-  else {
+  else
+  {
     avoiding = false;
     motor_forward(70, 100);
   }
