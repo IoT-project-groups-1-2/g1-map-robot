@@ -4,6 +4,9 @@
 #include "stdint.h"
 #include <project.h>
 
+#define LIDAR_PKG_HEADER 0x59
+#define LIDAR_PKG_SIZE 9
+
 void
 Lidar_start();
 
