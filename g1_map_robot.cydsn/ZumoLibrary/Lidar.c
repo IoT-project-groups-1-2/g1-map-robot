@@ -3,6 +3,9 @@
 
 static int old_dist = -1;
 
+/**
+ * @brief Starts UART for Lidar sensor and reads buffer for the first time, since it will most probably fail.
+ */
 void
 Lidar_start()
 {
@@ -10,23 +13,30 @@ Lidar_start()
   Lidar_get_distance();
 }
 
+/**
+ * @brief Gets distance measurement from the UART buffer, connected to Lidar sensor.
+ * 
+ * @return int distance to the obstacle. (<= 1200 cm) Returns -1 if there is no value available in the buffer.
+ */
 int
 Lidar_get_distance()
 {
   int distance = -1;
   int count = UART_3_GetRxBufferSize();
   int i = 0;
-  uint8_t bytes[57];
+  uint8_t bytes[LIDAR_PKG_SIZE * 6 + 1]; //The multiplication should depend on the UART buffer size.
 
-  if(count >= 9)
+  if(count >= LIDAR_PKG_SIZE)
     for(int q = 0; q < count; ++q)
       bytes[q] = UART_3_GetByte();
-
-  //It is a bad idea to treat any consequent 0x59 0x59 as a start of UART transaction,
-  //but it will do for now.
-  while (i < count - 8)
+  
+  /*
+  It is a bad idea to treat any consequent 0x59 0x59 as a start of UART transaction,
+  but it will do for our purposes.
+  */
+  while (i < count - LIDAR_PKG_SIZE - 1)
   {
-    if (bytes[i] == 0x59 && bytes[i + 1] == 0x59)
+    if (bytes[i] == LIDAR_PKG_HEADER && bytes[i + 1] == LIDAR_PKG_HEADER)
     {
       distance = bytes[i + 2] | (bytes[i + 3] << 8);
       old_dist = distance;
