@@ -39,6 +39,7 @@ them. <br> <br><br>
 #include "Nunchuk.h"
 #include "Reflectance.h"
 #include "Ultra.h"
+#include "I2C_Common.h"
 #include "mqtt_sender.h"
 #include "serial1.h"
 #include "task.h"
@@ -58,6 +59,8 @@ them. <br> <br><br>
  * @details  ** Enable global interrupt since Zumo library uses interrupts.
  * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
  */
+
+#if 0
 
 void
 zmain (json_command* cmd)
@@ -94,6 +97,8 @@ zmain (json_command* cmd)
     }
 }
 
+#endif
+
 #if LIDAR
 void
 zmain (json_command* cmd)
@@ -119,5 +124,50 @@ zmain (json_command* cmd)
 
 #endif
 
+
+#if 1
+//magnetometer//
+void
+zmain (json_command* cmd)
+{
+  CyGlobalIntEnable; 
+  UART_1_Start();
+  
+  I2C_Start();
+  
+  uint8 X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M;
+  uint16_t X_AXIS = 0, Y_AXIS = 0, Z_AXIS = 0;
+  uint8_t CTRL5 = 0;
+  
+  I2C_Write(GYRO_ADDR, GYRO_CTRL1_REG, 0x0F);             // set gyroscope into active mode
+  I2C_Write(GYRO_ADDR, GYRO_CTRL4_REG, 0x30);             // set full scale selection to 2000dps
+  I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL1_REG, 0x37);           // set accelerometer & magnetometer into active mode
+  I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL5_REG, 0x68); //Set Magnetometer to active. (was 0x24)
+  I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL7_REG, 0x20); //Set filtering. (was 0x22)
+  
+  for(;;)
+  {
+    X_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_L_M);
+    X_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_H_M);
+    //X_AXIS = convert_raw(X_L_M, X_H_M);
+    
+    Y_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_L_M);
+    Y_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_H_M);
+    //Y_AXIS = convert_raw(Y_L_M, Y_H_M);
+    
+    Z_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_L_M);
+    Z_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_H_M);
+    //Z_AXIS = convert_raw(Z_L_M, Z_H_M);
+
+    //heading(X_AXIS, Y_AXIS);
+    printf("MAGNET: %d %d %d %d %d %d \r\n", X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M);
+    
+    CTRL5 = I2C_Read(ACCEL_MAG_ADDR, ACCEL_CTRL5_REG);
+    printf("CTRL5 = %d\r\n", CTRL5);
+    //printf("%d %d %d \r\n", X_AXIS, Y_AXIS, Z_AXIS);
+    vTaskDelay(500);
+  }
+}
+#endif
 
 /* [] END OF FILE */
