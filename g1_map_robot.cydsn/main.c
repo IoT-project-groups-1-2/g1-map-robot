@@ -124,6 +124,12 @@ zmain (json_command* cmd)
 
 #endif
 
+int16_t
+convert_raw(uint8_t low, uint8_t high)
+{
+  return (int16_t) (high << 8) | low;
+}
+
 #if 1
 //magnetometer//
 void
@@ -135,38 +141,48 @@ zmain (json_command* cmd)
   I2C_Start();
   
   uint8 X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M;
-  uint16_t X_AXIS = 0, Y_AXIS = 0, Z_AXIS = 0;
-  uint8_t CTRL5 = 0;
+  uint8 X_L_A, X_H_A, Y_L_A, Y_H_A, Z_L_A, Z_H_A;
+  vector3 mag = {0, 0, 0};
+  vector3 acc = {0, 0, 0};
   
   I2C_Write(GYRO_ADDR, GYRO_CTRL1_REG, 0x0F);             // set gyroscope into active mode
   I2C_Write(GYRO_ADDR, GYRO_CTRL4_REG, 0x30);             // set full scale selection to 2000dps
   I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL1_REG, 0x37);           // set accelerometer & magnetometer into active mode
   I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL5_REG, 0x68); //Set Magnetometer to active. (was 0x24)
-  I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL7_REG, 0x20); //Set filtering. (was 0x22)
+  I2C_Write(ACCEL_MAG_ADDR, ACCEL_CTRL7_REG, 0x00); //Remove filtering. (was 0x22)
   
   for(;;)
   {
     X_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_L_M);
     X_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_H_M);
-    //X_AXIS = convert_raw(X_L_M, X_H_M);
-    X_AXIS = X_L_M << 8 | X_H_M;
+    mag.x = convert_raw(X_L_M, X_H_M);
     
     Y_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_L_M);
     Y_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_H_M);
-    //Y_AXIS = convert_raw(Y_L_M, Y_H_M);
-    Y_AXIS = Y_L_M << 8 | Y_H_M;
+    mag.y = convert_raw(Y_L_M, Y_H_M);
     
     Z_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_L_M);
     Z_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_H_M);
-    //Z_AXIS = convert_raw(Z_L_M, Z_H_M);
-    Z_AXIS = Z_L_M << 8 | Z_H_M;
+    mag.z = convert_raw(Z_L_M, Z_H_M);
 
-    heading(X_AXIS, Y_AXIS);
-    printf("MAGNET: %d %d %d %d %d %d \r\n", X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M);
+    X_L_A = I2C_Read(ACCEL_MAG_ADDR, OUT_X_L_A);
+    X_H_A = I2C_Read(ACCEL_MAG_ADDR, OUT_X_H_A);
+    acc.x = convert_raw(X_L_A, X_H_A);
     
-    CTRL5 = I2C_Read(ACCEL_MAG_ADDR, ACCEL_CTRL5_REG);
-    printf("CTRL5 = %d\r\n", CTRL5);
-    printf("%d %d %d \r\n", X_AXIS, Y_AXIS, Z_AXIS);
+    Y_L_A = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_L_A);
+    Y_H_A = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_H_A);
+    acc.y = convert_raw(Y_L_A, Y_H_A);
+    
+    Z_L_A = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_L_A);
+    Z_H_A = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_H_A);
+    acc.z = convert_raw(Z_L_A, Z_H_A);
+
+    printf("MAGNET: %d %d %d %d %d %d \r\n", X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M);
+    printf("ACCELE: %d %d %d %d %d %d \r\n", X_L_A, X_H_A, Y_L_A, Y_H_A, Z_L_A, Z_H_A);
+    printf("%7.3f %7.3f %7.3f \r\n", mag.x, mag.y, mag.z);
+    printf("%7.3f %7.3f %7.3f \r\n", acc.x, acc.y, acc.z);
+
+    heading(mag, acc);
     vTaskDelay(500);
   }
 }

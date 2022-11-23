@@ -9,8 +9,15 @@
 #include <project.h>
 #include <stdio.h>
 
+typedef struct _vec3
+{
+  double x;
+  double y;
+  double z;
+} vector3;
+
 uint16 value_convert_magnet (uint8 AXIS_H, uint8 AXIS_L);
-void heading (double X_AXIS, double Y_AXIS);
+double heading (vector3 mag, vector3 acc);
 void value_convert_accel (uint16 X_AXIS, uint16 Y_AXIS, uint16 Z_AXIS);
 
 #define WHO_AM_I_ACCEL 0x0F

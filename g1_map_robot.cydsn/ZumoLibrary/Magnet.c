@@ -9,27 +9,68 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+static vector3
+vector_cross(const vector3 a, const vector3 b);
+static double
+vector_dot(const vector3 a, const vector3 b);
+static vector3
+vector_normalize(vector3 *a);
+
 /**
  * @brief    Heading
- * @details
+ * @details Defined as the angle between X axis and Y axis.
+ * Measured in a clockwise direction when viewing from the top of the device = -Z
  * @param    double X_AXIS : X axis value
  * @param    double Y_AXIS : Y axis value
  */
-void
-heading (double X_AXIS,
-         double Y_AXIS) // defined as the angle between X axis and Y axis
-                        // measured in a clockwise direction when viewing from
-                        // the top of the device = -Z
+double
+heading (vector3 mag, vector3 acc)
 {
-  double heading;
-  heading = 180 * atan2 (X_AXIS, Y_AXIS) / M_PI;
+  vector3 from = {0, 0, 1};
+  vector3 east;
+  vector3 north;
+
+  east = vector_cross(mag, acc);
+  vector_normalize(&east);
+  north = vector_cross(acc, east);
+  vector_normalize(&north);
+
+  double heading = 180 * atan2 (vector_dot(east, from), vector_dot(north, from)) / M_PI;
 
   if (heading < 0)
     heading += 360;
 
   // If you want to print out the value
   printf("\nheading: %7.3f \r\n\n", heading);
-  vTaskDelay (250);
+  return heading;
+}
+
+static vector3
+vector_cross(const vector3 a, const vector3 b)
+{
+  vector3 res;
+  res.x = (a.y * b.z) - (a.z * b.y);
+  res.y = (a.z * b.x) - (a.x * b.z);
+  res.z = (a.x * b.y) - (a.y * b.x);
+
+  return res;
+}
+
+static double
+vector_dot(const vector3 a, const vector3 b)
+{
+  return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
+}
+
+static vector3
+vector_normalize(vector3 *a)
+{
+  double mag = sqrt(vector_dot(*a, *a));
+  a->x /= mag;
+  a->y /= mag;
+  a->z /= mag;
+
+  return *a;
 }
 
 #if 0
