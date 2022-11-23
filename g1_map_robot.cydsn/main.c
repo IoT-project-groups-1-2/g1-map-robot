@@ -124,7 +124,6 @@ zmain (json_command* cmd)
 
 #endif
 
-
 #if 1
 //magnetometer//
 void
@@ -150,21 +149,24 @@ zmain (json_command* cmd)
     X_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_L_M);
     X_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_X_H_M);
     //X_AXIS = convert_raw(X_L_M, X_H_M);
+    X_AXIS = X_L_M << 8 | X_H_M;
     
     Y_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_L_M);
     Y_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Y_H_M);
     //Y_AXIS = convert_raw(Y_L_M, Y_H_M);
+    Y_AXIS = Y_L_M << 8 | Y_H_M;
     
     Z_L_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_L_M);
     Z_H_M = I2C_Read(ACCEL_MAG_ADDR, OUT_Z_H_M);
     //Z_AXIS = convert_raw(Z_L_M, Z_H_M);
+    Z_AXIS = Z_L_M << 8 | Z_H_M;
 
-    //heading(X_AXIS, Y_AXIS);
+    heading(X_AXIS, Y_AXIS);
     printf("MAGNET: %d %d %d %d %d %d \r\n", X_L_M, X_H_M, Y_L_M, Y_H_M, Z_L_M, Z_H_M);
     
     CTRL5 = I2C_Read(ACCEL_MAG_ADDR, ACCEL_CTRL5_REG);
     printf("CTRL5 = %d\r\n", CTRL5);
-    //printf("%d %d %d \r\n", X_AXIS, Y_AXIS, Z_AXIS);
+    printf("%d %d %d \r\n", X_AXIS, Y_AXIS, Z_AXIS);
     vTaskDelay(500);
   }
 }

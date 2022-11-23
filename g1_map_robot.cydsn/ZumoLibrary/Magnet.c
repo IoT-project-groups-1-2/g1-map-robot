@@ -28,7 +28,7 @@ heading (double X_AXIS,
     heading += 360;
 
   // If you want to print out the value
-  // printf("heading: %7.3f \r\n", heading);
+  printf("\nheading: %7.3f \r\n\n", heading);
   vTaskDelay (250);
 }
 
