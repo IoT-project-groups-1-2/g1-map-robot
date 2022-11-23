@@ -16,6 +16,7 @@ void value_convert_accel (uint16 X_AXIS, uint16 Y_AXIS, uint16 Z_AXIS);
 #define WHO_AM_I_ACCEL 0x0F
 #define ACCEL_MAG_ADDR 0x1D
 #define ACCEL_CTRL1_REG 0x20
+#define ACCEL_CTRL5_REG 0x24
 #define ACCEL_CTRL7_REG 0x26
 
 #define OUT_X_L_M 0x08 // Magnetometer output
