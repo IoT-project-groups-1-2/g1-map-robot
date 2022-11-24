@@ -15,7 +15,7 @@ int16_t
 z_plane_get_current ()
 {
   uint8 z_plane_raw_low, z_plane_raw_high;
-  int16_t z_plane_output = 0, buffer_list = 0;
+  int16_t buffer_list = 0;
 
   I2C_Start ();
   I2C_Write (GYRO_ADDR, GYRO_CTRL1_REG, GYRO_MODE_ACTIVE);
@@ -28,5 +28,5 @@ z_plane_get_current ()
       buffer_list += convert_raw (z_plane_raw_high, z_plane_raw_low);
       vTaskDelay (5);
     }
-  return z_plane_output = buffer_list / (Z_PLANE_D_C_SQUARED);
+  return buffer_list / (Z_PLANE_D_C_SQUARED);
 }
