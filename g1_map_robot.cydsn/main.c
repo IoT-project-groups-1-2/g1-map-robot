@@ -32,30 +32,30 @@ them. <br> <br><br>
 #include "Beep.h"
 #include "FreeRTOS.h"
 #include "Gyro.h"
-#include "IR.h"
 #include "I2C_Common.h"
+#include "IR.h"
 #include "LSM303D.h"
+#include "Lidar.h"
 #include "MQTTClient.h"
 #include "Motor.h"
 #include "Nunchuk.h"
 #include "Reflectance.h"
 #include "Ultra.h"
+#include "balance.h"
+#include "json_str.h"
 #include "mqtt_sender.h"
 #include "serial1.h"
 #include "task.h"
+#include "zumo_config.h"
 #include <project.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
 #include <unistd.h>
-#include "json_str.h"
-#include "zumo_config.h"
-#include "Lidar.h"
-#include "balance.h"
 
 /**
- * 
+ *
  * @file    main.c
  * @brief
  * @details  ** Enable global interrupt since Zumo library uses interrupts.
@@ -82,10 +82,10 @@ zmain (json_command* cmd)
   while (true)
     {
       //printf ("Ctr: %d, Button: %d\n", ctr, SW1_Read ());
-      #if TEST == 1
+#if TEST == 1
         cmd->mode = true;
         cmd->duration = 10;
-      #endif
+#endif
       json_str_handle_cmd(cmd);
 
      if(cmd){
@@ -100,43 +100,41 @@ zmain (json_command* cmd)
 
 #if LIDAR
 void
-zmain (json_command* cmd)
+zmain (json_command *cmd)
 {
   printf ("\nBoot\n");
   int distance = 0;
   uint64_t ticks = 0;
   uint64_t res = 0;
-  Lidar_start();
-  while(true)
-  {
-    ticks++;
-    distance = Lidar_get_distance();
-    if(distance != -1)
+  Lidar_start ();
+  while (true)
     {
-      res++;
-      printf("(%llu:%llu) Distance = %d\r\n", ticks, res, distance);
+      ticks++;
+      distance = Lidar_get_distance ();
+      if (distance != -1)
+        {
+          res++;
+          printf ("(%llu:%llu) Distance = %d\r\n", ticks, res, distance);
+        }
+      // if(distance != -1) printf("Distance = %d\r\n", distance);
+      vTaskDelay (1);
     }
-    //if(distance != -1) printf("Distance = %d\r\n", distance);
-    vTaskDelay(1);
-  }
 }
 #endif
 
 #if GYRO
 void
-zmain (json_command* cmd)
+zmain (json_command *cmd)
 {
-  motor_start();
-  motor_forward(0, 0);
+  motor_start ();
+  motor_forward (0, 0);
   printf ("\nBoot\n");
-  int16_t z_plane = 0;
-  int z_plane_sum = 0;
-  while(SW1_Read()) ;
-  while(true)
-  {
-    z_plane= z_plane_get_current ();
-    predict_motor_direction(z_plane, 80, 80);
-  }
+  while (SW1_Read ())
+    ;
+  while (true)
+    {
+      motor_forward_for_s (50, 2);
+    }
 }
 #endif
 

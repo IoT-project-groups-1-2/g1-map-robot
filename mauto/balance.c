@@ -3,7 +3,7 @@
 static inline int16_t
 convert_raw (uint8_t high, uint8_t low)
 {
-  return (int16_t) (high << 8) | low;
+  return (int16_t)(high << 8) | low;
 }
 
 /**
@@ -31,41 +31,41 @@ z_plane_get_current ()
   return buffer_list / (Z_PLANE_D_C_SQUARED);
 }
 
-int integral = 0;
 static uint8_t
-pid (uint8_t motor_speed, int z_plane_velocity)
+pid (uint8_t motor_speed, int z_plane_velocity, int *integral)
 {
   float kP = 0.6, kI = 0.125;
   int error = 0;
   error = z_plane_velocity;
-  integral += error;
-  return (uint8_t) (motor_speed + ((kP * error) + (kI * integral)) * 1.2);
+  *integral += error;
+  int corrected_speed
+      = (motor_speed + ((kP * error) + (kI * (*integral))) * 1.2);
+
+  /* Check for uint8_t boundaries */
+  if (corrected_speed >= 255)
+    {
+      return (uint8_t)255;
+    }
+  return (uint8_t)corrected_speed;
 }
 
 uint8_t
-predict_motor_direction (int z_plane_velocity, uint8_t current_speed_l,
-                         uint8_t current_speed_r)
+predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
+                         int *integral)
 {
-  /** TODO
-   * - get direction
-   * - get absolute value of velocity
-   * - correct value with PID
-   */
+  uint8_t corrected_speed = pid (current_speed, z_plane_velocity, integral);
 
-  if (z_plane_velocity > 0)
-    { // left case
-      SetMotors (0, 0,
-                 pid (current_speed_l, z_plane_velocity), current_speed_r, 50);
+  if (z_plane_velocity IS_LEFT)
+    {
+      SetMotors (0, 0, corrected_speed, current_speed, PREDICTION_DURATION);
     }
-  else if (z_plane_velocity < 0)
-    { // rigth case
-      SetMotors (0, 0, current_speed_l,
-                 /*pid (current_speed_r, z_plane_velocity)*/
-                 current_speed_r + abs (z_plane_velocity), 50);
+  else if (z_plane_velocity IS_RIGHT)
+    {
+      SetMotors (0, 0, current_speed, corrected_speed, PREDICTION_DURATION);
     }
   else
-    { // forward
-      SetMotors (0, 0, current_speed_l, current_speed_r, 50);
+    {
+      SetMotors (0, 0, current_speed, current_speed, PREDICTION_DURATION);
     }
 
   return 0;
