@@ -37,11 +37,12 @@ pid (uint8_t motor_speed, int z_plane_velocity)
 {
   float kP = 0.6, kI = 0.05, kD = 0.125;
   int error = 0, last_error = 0, derivative = 0;
-  error = motor_speed + z_plane_velocity;
+  error = z_plane_velocity;
   last_error = error;
   integral += error;
   derivative = error - last_error;
-  return ((kP * error) + (kI * integral) + (kD * derivative));
+  return (uint8_t) (motor_speed
+                    + ((kP * error) + (kI * integral) + (kD * derivative)));
 }
 
 uint8_t
