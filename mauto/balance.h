@@ -5,6 +5,7 @@
 #include "Gyro.h"
 #include "I2C_Common.h"
 #include <stdlib.h>
+#include "task.h"
 
 /* set gyroscope into active mode */
 #define GYRO_MODE_ACTIVE 0x0F
