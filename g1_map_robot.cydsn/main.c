@@ -128,10 +128,11 @@ zmain (json_command* cmd)
 {
   printf ("\nBoot\n");
   int16_t z_plane = 0;
+  int z_plane_sum = 0;
   while(true)
   {
     z_plane = z_plane_get_current ();
-    printf("z_plane = %d\r\n", z_plane);
+    predict_motor_direction(z_plane_sum, 100, 100);
   }
 }
 #endif
