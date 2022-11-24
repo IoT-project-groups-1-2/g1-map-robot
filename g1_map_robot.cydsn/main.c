@@ -62,7 +62,7 @@ them. <br> <br><br>
  * @details  ** Enable global interrupt since Zumo library uses interrupts.
  * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
  */
-#if 0
+#if 1
 void
 zmain (json_command* cmd)
 {
@@ -122,41 +122,5 @@ zmain (json_command* cmd)
   }
 }
 #endif
-
-int16_t
-convert_raw(uint8_t high, uint8_t low)
-{
-  return (int16_t) (high << 8) | low;
-}
-
-//gyroscope//
-void zmain()
-{
-  CyGlobalIntEnable; 
-  UART_1_Start();
-
-  I2C_Start();
-
-  uint8 Z_L_G, Z_H_G;
-  int16 Z_AXIS_G = 0;
-  
-  I2C_Write(GYRO_ADDR, GYRO_CTRL1_REG, 0x0F);             // set gyroscope into active mode
-  I2C_Write(GYRO_ADDR, GYRO_CTRL4_REG, 0x30);             // set full scale selection to 2000dps
-
-  while(1) {
-    int temp = 0;
-    Z_AXIS_G = 0;
-    for(int i = 0; i < (CONST_COEF + 1); i++)
-    {
-      Z_L_G = I2C_Read(GYRO_ADDR, OUT_Z_AXIS_L);
-      Z_H_G = I2C_Read(GYRO_ADDR, OUT_Z_AXIS_H);
-      temp += convert_raw(Z_H_G, Z_L_G);
-      vTaskDelay(5);
-    }
-    Z_AXIS_G = temp / (CONST_COEF * CONST_COEF);
-    printf("%d \r\n", Z_AXIS_G);
-    vTaskDelay(5);
-  }
-}
 
 /* [] END OF FILE */
