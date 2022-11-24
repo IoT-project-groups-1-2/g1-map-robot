@@ -30,3 +30,14 @@ z_plane_get_current ()
     }
   return buffer_list / (Z_PLANE_D_C_SQUARED);
 }
+
+uint8_t
+predict_motor_direction (int16_t z_plane_velocity)
+{
+  /** TODO
+   * - get direction
+   * - get absolute value of velocity
+   * - correct value with PID
+   */
+  return 0;
+}
