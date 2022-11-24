@@ -58,6 +58,27 @@ motor_forward (uint8 speed, uint32 delay)
 }
 
 /**
+ * @brief Moving motors forward for amount of seconds
+ * @details This function calls for balancing algorithm internally
+ * @param speed : speed value
+ * @param seconds : time in seconds
+ */
+void
+motor_forward_for_s (uint8_t speed, size_t seconds)
+{
+  size_t global_delay_ms = seconds * 1000;
+  size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
+  int error_integral = 0;
+  int16_t z_plane = 0;
+  for (size_t i = 0; i < loop_duration; i++)
+    {
+      z_plane = z_plane_get_current ();
+      predict_motor_direction (z_plane, speed, &error_integral);
+    }
+  motor_stop ();
+}
+
+/**
  * @brief    Moving motors to make a turn
  * @details  moving left when l_speed < r_speed or moving right when l_speed >
  * r_speed
