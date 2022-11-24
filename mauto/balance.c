@@ -54,15 +54,18 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed_l,
    * - get absolute value of velocity
    * - correct value with PID
    */
+
   if (z_plane_velocity > 0)
     { // left case
-      SetMotors (0, 0, pid (current_speed_l, z_plane_velocity),
-                 current_speed_r, 50);
+      SetMotors (0, 0,
+                 /*pid (current_speed_l, z_plane_velocity)*/
+                 current_speed_l + z_plane_velocity, current_speed_r, 50);
     }
   else if (z_plane_velocity < 0)
     { // rigth case
       SetMotors (0, 0, current_speed_l,
-                 pid (current_speed_r, z_plane_velocity), 50);
+                 /*pid (current_speed_r, z_plane_velocity)*/
+                 current_speed_r + abs (z_plane_velocity), 50);
     }
   else
     { // forward
