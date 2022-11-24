@@ -20,6 +20,7 @@
 #define Z_PLANE_D_C_SQUARED SQUARE (Z_PLANE_DIVISION_COEFFICIENT)
 
 int16_t z_plane_get_current ();
+uint8_t predict_motor_direction(int16_t z_plane_velocity);
 
 
 
