@@ -54,8 +54,6 @@ them. <br> <br><br>
 #include "Lidar.h"
 #include "balance.h"
 
-#define CONST_COEF 20
-
 /**
  * 
  * @file    main.c
