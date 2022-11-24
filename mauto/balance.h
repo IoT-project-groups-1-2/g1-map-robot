@@ -14,14 +14,9 @@
  * 20 is found to be best
  */
 #define Z_PLANE_DIVISION_COEFFICIENT 0x14
-#define SQUARE(n)                                                             \
-  if (n % 2)                                                                  \
-  ? ((n >> 1) << 2) : (((n >> 1) << 2) + ((n >> 1) << 2) + 1)
-#define Z_PLANE_D_C_SQUARED SQUARE (Z_PLANE_DIVISION_COEFFICIENT)
-
+#define Z_PLANE_D_C_SQUARED                                                   \
+  Z_PLANE_DIVISION_COEFFICIENT *Z_PLANE_DIVISION_COEFFICIENT
 int16_t z_plane_get_current ();
-uint8_t predict_motor_direction(int16_t z_plane_velocity);
-
-
+uint8_t predict_motor_direction (int16_t z_plane_velocity);
 
 #endif /* BALANCE_H */
