@@ -4,8 +4,10 @@
 #include "FreeRTOS.h"
 #include "Gyro.h"
 #include "I2C_Common.h"
-#include <stdlib.h>
+#include "Motor.h"
 #include "task.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 /* set gyroscope into active mode */
 #define GYRO_MODE_ACTIVE 0x0F
@@ -18,6 +20,7 @@
 #define Z_PLANE_D_C_SQUARED                                                   \
   Z_PLANE_DIVISION_COEFFICIENT *Z_PLANE_DIVISION_COEFFICIENT
 int16_t z_plane_get_current ();
-uint8_t predict_motor_direction (int16_t z_plane_velocity);
+uint8_t predict_motor_direction (int z_plane_velocity, uint8_t current_speed_l,
+                                 uint8_t current_speed_r);
 
 #endif /* BALANCE_H */
