@@ -35,14 +35,11 @@ int integral = 0;
 static uint8_t
 pid (uint8_t motor_speed, int z_plane_velocity)
 {
-  float kP = 0.6, kI = 0.05, kD = 0.125;
-  int error = 0, last_error = 0, derivative = 0;
+  float kP = 0.6, kI = 0.125;
+  int error = 0;
   error = z_plane_velocity;
-  last_error = error;
   integral += error;
-  derivative = error - last_error;
-  return (uint8_t) (motor_speed
-                    + ((kP * error) + (kI * integral) + (kD * derivative)));
+  return (uint8_t) (motor_speed + ((kP * error) + (kI * integral)) * 1.2);
 }
 
 uint8_t
@@ -58,8 +55,7 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed_l,
   if (z_plane_velocity > 0)
     { // left case
       SetMotors (0, 0,
-                 /*pid (current_speed_l, z_plane_velocity)*/
-                 current_speed_l + z_plane_velocity, current_speed_r, 50);
+                 pid (current_speed_l, z_plane_velocity), current_speed_r, 50);
     }
   else if (z_plane_velocity < 0)
     { // rigth case
