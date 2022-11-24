@@ -31,13 +31,42 @@ z_plane_get_current ()
   return buffer_list / (Z_PLANE_D_C_SQUARED);
 }
 
+int integral = 0;
+static uint8_t
+pid (uint8_t motor_speed, int z_plane_velocity)
+{
+  float kP = 0.6, kI = 0.05, kD = 0.125;
+  int error = 0, last_error = 0, derivative = 0;
+  error = motor_speed + z_plane_velocity;
+  last_error = error;
+  integral += error;
+  derivative = error - last_error;
+  return ((kP * error) + (kI * integral) + (kD * derivative));
+}
+
 uint8_t
-predict_motor_direction (int16_t z_plane_velocity)
+predict_motor_direction (int z_plane_velocity, uint8_t current_speed_l,
+                         uint8_t current_speed_r)
 {
   /** TODO
    * - get direction
    * - get absolute value of velocity
    * - correct value with PID
    */
+  if (z_plane_velocity > 0)
+    { // left case
+      SetMotors (0, 0, pid (current_speed_l, z_plane_velocity),
+                 current_speed_r, 50);
+    }
+  else if (z_plane_velocity < 0)
+    { // rigth case
+      SetMotors (0, 0, current_speed_l,
+                 pid (current_speed_r, z_plane_velocity), 50);
+    }
+  else
+    { // forward
+      SetMotors (0, 0, current_speed_l, current_speed_r, 50);
+    }
+
   return 0;
 }
