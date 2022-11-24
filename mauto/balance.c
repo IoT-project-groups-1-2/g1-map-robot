@@ -21,7 +21,7 @@ z_plane_get_current ()
   I2C_Write (GYRO_ADDR, GYRO_CTRL1_REG, GYRO_MODE_ACTIVE);
   I2C_Write (GYRO_ADDR, GYRO_CTRL4_REG, GYRO_FULL_SCALE_SELECTION);
 
-  for (size_t i = 0; i < (Z_PLANE_DIVISION_COEFFICIENT + 1); i++)
+  for (size_t i = 0; i <= Z_PLANE_DIVISION_COEFFICIENT; i++)
     {
       z_plane_raw_low = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_L);
       z_plane_raw_high = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_H);
