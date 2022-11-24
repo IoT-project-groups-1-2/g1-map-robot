@@ -52,6 +52,7 @@ them. <br> <br><br>
 #include "json_str.h"
 #include "zumo_config.h"
 #include "Lidar.h"
+#include "balance.h"
 
 #define CONST_COEF 20
 
@@ -62,7 +63,7 @@ them. <br> <br><br>
  * @details  ** Enable global interrupt since Zumo library uses interrupts.
  * **<br>&nbsp;&nbsp;&nbsp;CyGlobalIntEnable;<br>
  */
-#if 1
+#if 0
 void
 zmain (json_command* cmd)
 {
@@ -119,6 +120,20 @@ zmain (json_command* cmd)
     }
     //if(distance != -1) printf("Distance = %d\r\n", distance);
     vTaskDelay(1);
+  }
+}
+#endif
+
+#if GYRO
+void
+zmain (json_command* cmd)
+{
+  printf ("\nBoot\n");
+  int16_t z_plane = 0;
+  while(true)
+  {
+    z_plane = z_plane_get_current ();
+    printf("z_plane = %d\r\n", z_plane);
   }
 }
 #endif
