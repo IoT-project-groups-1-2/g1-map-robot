@@ -70,10 +70,15 @@ motor_forward_for_s (uint8_t speed, size_t seconds)
   size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
   int error_integral = 0;
   int16_t z_plane = 0;
+  int z_plane_sum = 0;
+  uint8_t cvl = speed;
+  uint8_t cvr = speed;
   for (size_t i = 0; i < loop_duration; i++)
     {
-      z_plane = z_plane_get_current ();
-      predict_motor_direction (z_plane, speed, &error_integral);
+      z_plane = z_plane_get_current();
+      z_plane_sum += z_plane;
+      try_to_correct(z_plane_sum, &cvl, &cvr);
+      //predict_motor_direction (z_plane, speed, &error_integral);
     }
   motor_stop ();
 }
