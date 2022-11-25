@@ -75,7 +75,7 @@ motor_forward_for_s (uint8_t speed, size_t seconds)
       z_plane = z_plane_get_current ();
       predict_motor_direction (z_plane, speed, &error_integral);
     }
-  motor_stop ();
+  motor_forward (0,0);
 }
 
 /**

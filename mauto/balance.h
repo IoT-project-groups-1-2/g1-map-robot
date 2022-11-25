@@ -16,7 +16,7 @@
 /* coefficent to divide a list of values with the size of this
  * 20 is found to be best
  */
-#define Z_PLANE_DIVISION_COEFFICIENT 0x14
+#define Z_PLANE_DIVISION_COEFFICIENT 10
 #define Z_PLANE_D_C_SQUARED                                                   \
   Z_PLANE_DIVISION_COEFFICIENT *Z_PLANE_DIVISION_COEFFICIENT
 #define PREDICTION_DURATION 50

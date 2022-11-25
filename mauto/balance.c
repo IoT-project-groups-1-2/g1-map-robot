@@ -57,15 +57,15 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
 
   if (z_plane_velocity IS_LEFT)
     {
-      SetMotors (0, 0, corrected_speed, current_speed, PREDICTION_DURATION);
+      SetMotors (0, 0, corrected_speed, current_speed, 0);
     }
   else if (z_plane_velocity IS_RIGHT)
     {
-      SetMotors (0, 0, current_speed, corrected_speed, PREDICTION_DURATION);
+      SetMotors (0, 0, current_speed, corrected_speed, 0);
     }
   else
     {
-      SetMotors (0, 0, current_speed, current_speed, PREDICTION_DURATION);
+      SetMotors (0, 0, current_speed, current_speed, 0);
     }
 
   return 0;
