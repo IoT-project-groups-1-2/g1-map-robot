@@ -94,7 +94,7 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
     if (*cvr > 255) *cvr = 255;
   }
 
-  if (*cvr < 50 && *cvl < 50)
+  if (*cvr < 90 && *cvl < 90)
   {
     *cvr += 50;
     *cvl += 50;
