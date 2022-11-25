@@ -80,7 +80,7 @@ motor_forward_for_s (uint8_t speed, size_t seconds)
       try_to_correct(z_plane_sum, &cvl, &cvr);
       //predict_motor_direction (z_plane, speed, &error_integral);
     }
-  motor_stop ();
+  motor_forward(0, 0);
 }
 
 /**
