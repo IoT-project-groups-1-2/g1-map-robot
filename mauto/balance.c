@@ -82,7 +82,6 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
 
     if (*cvr < 0) *cvr = 0;
     if (*cvl > 255) *cvl = 255;
-    SetMotors (0, 0, *cvl, *cvr, 0);
   }
   else if (zv_sum IS_RIGHT)
   {
@@ -93,11 +92,13 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
 
     if (*cvl < 0) *cvl = 0;
     if (*cvr > 255) *cvr = 255;
-    SetMotors (0, 0, *cvl, *cvr, 0);
   }
-  else
+
+  if (*cvr < 50 && *cvl < 50))
   {
-    SetMotors (0, 0, *cvl, *cvr, 0);
+    *cvr += 50;
+    *cvl += 50;
   }
+  SetMotors (0, 0, *cvl, *cvr, 0);
   return 0;
 }
