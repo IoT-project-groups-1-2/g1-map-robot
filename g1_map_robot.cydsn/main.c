@@ -133,7 +133,7 @@ zmain (json_command *cmd)
     ;
   while (true)
     {
-      motor_forward_for_s (50, 2);
+      motor_forward_for_s (100, 2);
     }
 }
 #endif

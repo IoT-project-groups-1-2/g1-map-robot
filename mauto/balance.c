@@ -70,3 +70,32 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
 
   return 0;
 }
+
+uint8_t
+try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
+{
+  if (zv_sum IS_LEFT)
+  {
+    if (*cvr > 0) *cvr -= (zv_sum / 2) ? (zv_sum / 2) : 1;
+    else if (*cvl < 255) *cvl += (zv_sum / 2) ? (zv_sum / 2) : 1;
+
+    if (*cvr < 0) *cvr = 0;
+    if (*cvl > 255) *cvl = 255;
+    SetMotors (0, 0, *cvl, *cvr, 0);
+  }
+  else if (zv_sum IS_RIGHT)
+  {
+    zv_sum *= -1;
+    if (*cvl > 0) *cvl -= (zv_sum / 2) ? (zv_sum / 2) : 1;
+    else if (*cvr < 255) *cvr += (zv_sum / 2) ? (zv_sum / 2) : 1;
+
+    if (*cvl < 0) *cvl = 0;
+    if (*cvr > 255) *cvr = 255;
+    SetMotors (0, 0, *cvl, *cvr, 0);
+  }
+  else
+  {
+    SetMotors (0, 0, *cvl, *cvr, 0);
+  }
+  return 0;
+}
