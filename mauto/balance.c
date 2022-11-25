@@ -76,8 +76,9 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
 {
   if (zv_sum IS_LEFT)
   {
+    if(zv_sum > 100) zv_sum = 100;
     if (*cvr > 0) *cvr -= (zv_sum / 2) ? (zv_sum / 2) : 1;
-    else if (*cvl < 255) *cvl += (zv_sum / 2) ? (zv_sum / 2) : 1;
+    else if (*cvl < 256) *cvl += (zv_sum / 2) ? (zv_sum / 2) : 1;
 
     if (*cvr < 0) *cvr = 0;
     if (*cvl > 255) *cvl = 255;
@@ -86,8 +87,9 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
   else if (zv_sum IS_RIGHT)
   {
     zv_sum *= -1;
+    if(zv_sum > 100) zv_sum = 100;
     if (*cvl > 0) *cvl -= (zv_sum / 2) ? (zv_sum / 2) : 1;
-    else if (*cvr < 255) *cvr += (zv_sum / 2) ? (zv_sum / 2) : 1;
+    else if (*cvr < 256) *cvr += (zv_sum / 2) ? (zv_sum / 2) : 1;
 
     if (*cvl < 0) *cvl = 0;
     if (*cvr > 255) *cvr = 255;
