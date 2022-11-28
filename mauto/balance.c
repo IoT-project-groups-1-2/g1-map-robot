@@ -71,24 +71,25 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
   return 0;
 }
 
+//Pass angle_sum
 uint8_t
-try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
+try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr)
 {
-  if (zv_sum IS_LEFT)
+  if (ang_sum IS_LEFT)
   {
-    if(zv_sum > 100) zv_sum = 100;
-    if (*cvr > 0) *cvr -= (zv_sum / 4) ? (zv_sum / 4) : 1;
-    else if (*cvl < 256) *cvl += (zv_sum / 4) ? (zv_sum / 4) : 1;
+    if(ang_sum > 100) ang_sum = 100;
+    if (*cvr > 0) *cvr -= (ang_sum / 4) ? (ang_sum / 4) : 1;
+    else if (*cvl < 256) *cvl += (ang_sum / 4) ? (ang_sum / 4) : 1;
 
     if (*cvr < 0) *cvr = 0;
     if (*cvl > 255) *cvl = 255;
   }
-  else if (zv_sum IS_RIGHT)
+  else if (ang_sum IS_RIGHT)
   {
-    zv_sum *= -1;
-    if(zv_sum > 100) zv_sum = 100;
-    if (*cvl > 0) *cvl -= (zv_sum / 4) ? (zv_sum / 4) : 1;
-    else if (*cvr < 256) *cvr += (zv_sum / 4) ? (zv_sum / 4) : 1;
+    ang_sum *= -1;
+    if(ang_sum > 100) ang_sum = 100;
+    if (*cvl > 0) *cvl -= (ang_sum / 4) ? (ang_sum / 4) : 1;
+    else if (*cvr < 256) *cvr += (ang_sum / 4) ? (ang_sum / 4) : 1;
 
     if (*cvl < 0) *cvl = 0;
     if (*cvr > 255) *cvr = 255;
@@ -103,31 +104,43 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
   return 0;
 }
 
+//Pass angle_sum
 uint8_t
-fix_heading (int *zv_sum)
+fix_heading (int *ang_sum, size_t loop_duration)
 {
-  int zv_for_speed = 0;
+  int ang_for_speed = 0;
   int speed = 0;
-  while (*zv_sum != 0)
+  int tick = 0;
+  int z_plane = 0;
+  int i = 0;
+  while (*ang_sum != 0 && i < loop_duration )
   {
-    *zv_sum += z_plane_get_current();
-    //Constrict zv_sum to 100 in order to determine speed
-    if(*zv_sum < -100 || *zv_sum > 100)
-      zv_for_speed = 100;
-    else if(*zv_sum < 0)
-      zv_for_speed = *zv_sum * -1;
-    else
-      zv_for_speed = *zv_sum;
+    i++;
+    //Remember time
+    tick = xTaskGetTickCount();
+    z_plane = z_plane_get_current();
+    //Get time
+    tick = xTaskGetTickCount() - tick;
+    //Get angle
+    *ang_sum += z_plane * 100 / tick;
 
-    speed = (zv_for_speed < 30) ? 50 : zv_for_speed * 2;
+    //Constrict ang_sum to 100 in order to determine speed
+    if(*ang_sum < -100 || *ang_sum > 100)
+      ang_for_speed = 100;
+    else if(*ang_sum < 0)
+      ang_for_speed = *ang_sum * -1;
+    else
+      ang_for_speed = *ang_sum;
+
+    speed = (ang_for_speed < 30) ? 50 : ang_for_speed * 2;
     //
-    if(*zv_sum IS_LEFT)
+    if(*ang_sum IS_LEFT)
     {
-      motor_tank_turn_right(speed, 3);
+      motor_tank_turn_right(speed, 33);
     }
-    else if(*zv_sum IS_RIGHT)
+    else if(*ang_sum IS_RIGHT)
     {
-      motor_tank_turn_left(speed, 5);
+      motor_tank_turn_left(speed, 55);
     }
   }
   motor_forward(0, 0);

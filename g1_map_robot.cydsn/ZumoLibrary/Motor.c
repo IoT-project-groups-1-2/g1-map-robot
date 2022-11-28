@@ -66,55 +66,51 @@ motor_forward (uint8 speed, uint32 delay)
  * @param speed : speed value
  * @param seconds : time in seconds
  */
-void
+int
 motor_forward_for_s (uint8_t speed, size_t seconds)
 {
   size_t global_delay_ms = seconds * 1000;
   size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
   //int error_integral = 0;
   int16_t z_plane = 0;
-  int z_plane_sum = 0;
+  int angle_sum = 0;
   uint8_t cvl = speed;
   uint8_t cvr = speed;
   char status_message[400] = { 0 };
   int message_len = 0;
-
-//DEBUG
-  int tick = xTaskGetTickCount();
-  message_len = snprintf (status_message, 400, "{Start tick = %d}", tick);
-  print_mqtt ("t_status", "%.*s", message_len, status_message);
-  z_plane = z_plane_get_current();
-  tick = xTaskGetTickCount();
-  message_len = snprintf (status_message, 400, "{Plain Read tick = %d}", tick);
-  print_mqtt ("t_status", "%.*s", message_len, status_message);
-///DEBUG
+  int tick = 0;
   for (size_t i = 0; i < loop_duration; i++)
+  {
+    //Remember time
+    tick = xTaskGetTickCount();
+    z_plane = z_plane_get_current();
+    //Exit point in case we hit something.
+    if(z_plane > 40)
     {
-      z_plane = z_plane_get_current();
-      z_plane_sum += z_plane;
-//DEBUG
-      tick = xTaskGetTickCount();
-      message_len = snprintf (status_message, 400, "{Read  tick = %d}", tick);
-      print_mqtt ("t_status", "%.*s", message_len, status_message);
-///DEBUG
-      try_to_correct(z_plane_sum, &cvl, &cvr);
-      //predict_motor_direction (z_plane, speed, &error_integral);
+      motor_forward(0, 0);
+      return 1;
     }
+    //Get time
+    tick = xTaskGetTickCount() - tick;
+    //Get angle
+    angle_sum += z_plane * 100 / tick;
+
+    //Pass angle.
+    try_to_correct(angle_sum, &cvl, &cvr);
+    //predict_motor_direction (z_plane, speed, &error_integral);
+  }
   motor_forward(0, 0);
 //DEBUG
-  tick = xTaskGetTickCount();
-  message_len = snprintf (status_message, 400, "{Stop  tick = %d}", tick);
-  print_mqtt ("t_status", "%.*s", message_len, status_message);
-
-  message_len = snprintf (status_message, 400, "{Stopped with: %d zv_sum}", z_plane_sum);
+  message_len = snprintf (status_message, 400, "{Stopped with: %d ang}", angle_sum);
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
   //Take over from here in order to fix heading.
-  fix_heading(&z_plane_sum);
+  fix_heading(&angle_sum, loop_duration);
 //DEBUG
-  message_len = snprintf (status_message, 400, "{Finished with: %d zv_sum}", z_plane_sum);
+  message_len = snprintf (status_message, 400, "{Finished with: %d ang}", angle_sum);
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
+  return 0;
 }
 
 /**
