@@ -16,7 +16,7 @@ void motor_stop ();  // stop motor PWM timers
 void motor_forward (uint8 speed, uint32 delay);
 
 /* moving forward for some amount of seconds */
-int motor_forward_for_s (uint8_t speed, size_t seconds);
+int motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum);
 
 /* moving left when l_speed < r_speed or moving right when l_speed > r_speed */
 void motor_turn (uint8 l_speed, uint8 r_speed, uint32 delay);
