@@ -77,7 +77,7 @@ try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr)
 {
   if (ang_sum IS_LEFT)
   {
-    if(ang_sum > 100) ang_sum = 100;
+    if(ang_sum > 50) ang_sum = 50;
     if (*cvr > 0) *cvr -= (ang_sum / 4) ? (ang_sum / 4) : 1;
     else if (*cvl < 256) *cvl += (ang_sum / 4) ? (ang_sum / 4) : 1;
 
@@ -87,7 +87,7 @@ try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr)
   else if (ang_sum IS_RIGHT)
   {
     ang_sum *= -1;
-    if(ang_sum > 100) ang_sum = 100;
+    if(ang_sum > 50) ang_sum = 50;
     if (*cvl > 0) *cvl -= (ang_sum / 4) ? (ang_sum / 4) : 1;
     else if (*cvr < 256) *cvr += (ang_sum / 4) ? (ang_sum / 4) : 1;
 

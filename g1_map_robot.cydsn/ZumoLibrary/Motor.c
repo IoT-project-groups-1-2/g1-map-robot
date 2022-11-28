@@ -67,13 +67,12 @@ motor_forward (uint8 speed, uint32 delay)
  * @param seconds : time in seconds
  */
 int
-motor_forward_for_s (uint8_t speed, size_t seconds)
+motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum)
 {
   size_t global_delay_ms = seconds * 1000;
   size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
   //int error_integral = 0;
   int16_t z_plane = 0;
-  int angle_sum = 0;
   uint8_t cvl = speed;
   uint8_t cvr = speed;
   char status_message[400] = { 0 };
@@ -88,26 +87,27 @@ motor_forward_for_s (uint8_t speed, size_t seconds)
     if(z_plane > 40)
     {
       motor_forward(0, 0);
+      *angle_sum = 0;
       return 1;
     }
     //Get time
     tick = xTaskGetTickCount() - tick;
     //Get angle
-    angle_sum += z_plane * 100 / tick;
+    *angle_sum += z_plane * 100 / tick;
 
     //Pass angle.
-    try_to_correct(angle_sum, &cvl, &cvr);
+    try_to_correct(*angle_sum, &cvl, &cvr);
     //predict_motor_direction (z_plane, speed, &error_integral);
   }
   motor_forward(0, 0);
 //DEBUG
-  message_len = snprintf (status_message, 400, "{Stopped with: %d ang}", angle_sum);
+  message_len = snprintf (status_message, 400, "{Stopped with: %d ang}", *angle_sum);
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
   //Take over from here in order to fix heading.
-  fix_heading(&angle_sum, loop_duration);
+  fix_heading(angle_sum, loop_duration);
 //DEBUG
-  message_len = snprintf (status_message, 400, "{Finished with: %d ang}", angle_sum);
+  message_len = snprintf (status_message, 400, "{Finished with: %d ang}", *angle_sum);
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
   return 0;
