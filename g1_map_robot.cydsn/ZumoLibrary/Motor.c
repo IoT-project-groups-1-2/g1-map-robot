@@ -4,10 +4,13 @@
  * refer to Motor.h file.
  * @details included in Zumo shield
  */
+#include <stdio.h>
+
 #include "Motor.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "zumo_config.h"
+#include "mqtt_sender.h"
 
 #if ZUMO_SIMULATOR == 0
 
@@ -68,19 +71,50 @@ motor_forward_for_s (uint8_t speed, size_t seconds)
 {
   size_t global_delay_ms = seconds * 1000;
   size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
-  int error_integral = 0;
+  //int error_integral = 0;
   int16_t z_plane = 0;
   int z_plane_sum = 0;
   uint8_t cvl = speed;
   uint8_t cvr = speed;
+  char status_message[400] = { 0 };
+  int message_len = 0;
+
+//DEBUG
+  int tick = xTaskGetTickCount();
+  message_len = snprintf (status_message, 400, "{Start tick = %d}", tick);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+  z_plane = z_plane_get_current();
+  tick = xTaskGetTickCount();
+  message_len = snprintf (status_message, 400, "{Plain Read tick = %d}", tick);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+///DEBUG
   for (size_t i = 0; i < loop_duration; i++)
     {
       z_plane = z_plane_get_current();
       z_plane_sum += z_plane;
+//DEBUG
+      tick = xTaskGetTickCount();
+      message_len = snprintf (status_message, 400, "{Read  tick = %d}", tick);
+      print_mqtt ("t_status", "%.*s", message_len, status_message);
+///DEBUG
       try_to_correct(z_plane_sum, &cvl, &cvr);
       //predict_motor_direction (z_plane, speed, &error_integral);
     }
   motor_forward(0, 0);
+//DEBUG
+  tick = xTaskGetTickCount();
+  message_len = snprintf (status_message, 400, "{Stop  tick = %d}", tick);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+
+  message_len = snprintf (status_message, 400, "{Stopped with: %d zv_sum}", z_plane_sum);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+///DEBUG
+  //Take over from here in order to fix heading.
+  fix_heading(&z_plane_sum);
+//DEBUG
+  message_len = snprintf (status_message, 400, "{Finished with: %d zv_sum}", z_plane_sum);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+///DEBUG
 }
 
 /**

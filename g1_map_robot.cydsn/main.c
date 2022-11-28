@@ -129,12 +129,18 @@ zmain (json_command *cmd)
   motor_start ();
   motor_forward (0, 0);
   printf ("\nBoot\n");
-  while (SW1_Read ())
-    ;
+  print_mqtt("t_status", "%.*s", 13, "MQTT Ready\n\r");
+  while (SW1_Read ());
   while (true)
     {
       motor_forward_for_s (100, 2);
       vTaskDelay(1000);
+      /*
+      char status_message[400] = { 0 };
+      const int message_len
+          = snprintf (status_message, 400, "{\"status\":%d}", 1);
+      print_mqtt ("t_status", "%.*s", message_len, status_message);
+      */
     }
 }
 #endif
