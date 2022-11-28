@@ -102,3 +102,34 @@ try_to_correct (int zv_sum, uint8_t *cvl, uint8_t *cvr)
   SetMotors (0, 0, *cvl, *cvr, 0);
   return 0;
 }
+
+uint8_t
+fix_heading (int *zv_sum)
+{
+  int zv_for_speed = 0;
+  int speed = 0;
+  while (*zv_sum != 0)
+  {
+    *zv_sum += z_plane_get_current();
+    //Constrict zv_sum to 100 in order to determine speed
+    if(*zv_sum < -100 || *zv_sum > 100)
+      zv_for_speed = 100;
+    else if(*zv_sum < 0)
+      zv_for_speed = *zv_sum * -1;
+    else
+      zv_for_speed = *zv_sum;
+
+    speed = (zv_for_speed < 30) ? 50 : zv_for_speed * 2;
+    //
+    if(*zv_sum IS_LEFT)
+    {
+      motor_tank_turn_right(speed, 3);
+    }
+    else if(*zv_sum IS_RIGHT)
+    {
+      motor_tank_turn_left(speed, 5);
+    }
+  }
+  motor_forward(0, 0);
+  return 0;
+}
