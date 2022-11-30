@@ -34,7 +34,7 @@ Lidar_get_distance()
   It is a bad idea to treat any consequent 0x59 0x59 as a start of UART transaction,
   but it will do for our purposes.
   */
-  while (i < count - LIDAR_PKG_SIZE - 1)
+  while (i < count - (LIDAR_PKG_SIZE - 1))
   {
     if (bytes[i] == LIDAR_PKG_HEADER && bytes[i + 1] == LIDAR_PKG_HEADER)
     {
