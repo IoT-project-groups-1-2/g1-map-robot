@@ -11,6 +11,9 @@
 #include "task.h"
 #include "zumo_config.h"
 #include "mqtt_sender.h"
+#include "Beep.h"
+
+#define _BEEP_PITCH 30 //Basically volume
 
 #if ZUMO_SIMULATOR == 0
 
@@ -66,6 +69,7 @@ motor_forward (uint8 speed, uint32 delay)
  * @param speed : speed value
  * @param seconds : time in seconds
  */
+#if 0
 int
 motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum)
 {
@@ -82,18 +86,74 @@ motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum)
   {
     //Remember time
     tick = xTaskGetTickCount();
+    //Getting angular velocity
     z_plane = z_plane_get_current();
+
     //Exit point in case we hit something.
     if(z_plane > 40)
     {
       motor_forward(0, 0);
       *angle_sum = 0;
+      Beep(100, _BEEP_PITCH);
       return 1;
     }
     //Get time
     tick = xTaskGetTickCount() - tick;
     //Get angle
-    *angle_sum += z_plane * 100 / tick;
+    *angle_sum += z_plane * 100 / tick; //Miltiplication of an arbitrary measurement bvy 100. (Basically getting deci"radian")
+    try_to_correct(*angle_sum, &cvl, &cvr);
+  }
+  motor_forward(0, 0);
+  //Take over from here in order to fix heading.
+  fix_heading(angle_sum, loop_duration);
+
+  //Now we might be heading forward, but we are off by some distance from the center, so we must make mirrored motion back.
+  //The idea is simple.
+
+  return 0;
+}
+#else
+int
+motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum)
+{
+  size_t global_delay_ms = seconds * 1000;
+  size_t loop_duration = global_delay_ms / PREDICTION_DURATION;
+  //int error_integral = 0;
+  int16_t z_plane = 0;
+  uint8_t cvl = speed;
+  uint8_t cvr = speed;
+  char status_message[400] = { 0 };
+  int message_len = 0;
+  int tick = 0;
+//DEBUG
+  message_len = snprintf (status_message, 400, "{Started with: %d ang}", *angle_sum);
+  print_mqtt ("t_status", "%.*s", message_len, status_message);
+///DEBUG
+  for (size_t i = 0; i < loop_duration; i++)
+  {
+    //Remember time
+    tick = xTaskGetTickCount();
+    z_plane = z_plane_get_current();
+    //Exit point in case we hit something.
+    if(z_plane > 100)
+    {
+      motor_forward(0, 0);
+      *angle_sum = 0;
+      Beep(100, _BEEP_PITCH);
+      return 1;
+    }
+    //Get time
+    tick = xTaskGetTickCount() - tick;
+    //Get angle
+    *angle_sum += z_plane;
+    //DEBUG
+    message_len = snprintf (status_message, 400, "{Continue with: %d ang}", *angle_sum);
+    print_mqtt ("t_status", "%.*s", message_len, status_message);
+    ///DEBUG
+    //DEBUG
+    message_len = snprintf (status_message, 400, "{Motor speeds are: %d and %d}", cvl, cvr);
+    print_mqtt ("t_status", "%.*s", message_len, status_message);
+    ///DEBUG
 
     //Pass angle.
     try_to_correct(*angle_sum, &cvl, &cvr);
@@ -105,13 +165,14 @@ motor_forward_for_s (uint8_t speed, size_t seconds, int *angle_sum)
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
   //Take over from here in order to fix heading.
-  fix_heading(angle_sum, loop_duration);
+  //fix_heading(angle_sum, loop_duration);
 //DEBUG
   message_len = snprintf (status_message, 400, "{Finished with: %d ang}", *angle_sum);
   print_mqtt ("t_status", "%.*s", message_len, status_message);
 ///DEBUG
   return 0;
 }
+#endif
 
 /**
  * @brief    Moving motors to make a turn

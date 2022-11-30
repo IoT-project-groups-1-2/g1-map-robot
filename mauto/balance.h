@@ -19,11 +19,12 @@
 #define Z_PLANE_DIVISION_COEFFICIENT 0x14
 #define Z_PLANE_D_C_SQUARED                                                   \
   Z_PLANE_DIVISION_COEFFICIENT *Z_PLANE_DIVISION_COEFFICIENT
-#define PREDICTION_DURATION 50
+#define PREDICTION_DURATION 20
 #define IS_LEFT > 0
 #define IS_RIGHT < 0
 
 int16_t z_plane_get_current ();
+int16_t z_plane_get_current_raw ();
 uint8_t predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
                                  int *integral);
 

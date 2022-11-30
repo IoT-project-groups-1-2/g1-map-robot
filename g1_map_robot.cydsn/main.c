@@ -126,22 +126,21 @@ zmain (json_command *cmd)
 void
 zmain (json_command *cmd)
 {
+  char status_message[400] = { 0 };
+  int message_len = 0;
   motor_start ();
   motor_forward (0, 0);
   printf ("\nBoot\n");
   print_mqtt("t_status", "%.*s", 13, "MQTT Ready\n\r");
+  print_mqtt("t_status", "%.*s", 28, "Waiting for button press.\n\r");
   while (SW1_Read ());
   int angle_sum = 0;
   while (true)
     {
+      //message_len = snprintf (status_message, 400, "{Ang v: %d}", z_plane_get_current());
+      //print_mqtt ("t_status", "%.*s", message_len, status_message);
       motor_forward_for_s (100, 2, &angle_sum);
-      vTaskDelay(1000);
-      /*
-      char status_message[400] = { 0 };
-      const int message_len
-          = snprintf (status_message, 400, "{\"status\":%d}", 1);
-      print_mqtt ("t_status", "%.*s", message_len, status_message);
-      */
+      //vTaskDelay(1000);
     }
 }
 #endif

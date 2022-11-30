@@ -26,9 +26,31 @@ z_plane_get_current ()
       z_plane_raw_low = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_L);
       z_plane_raw_high = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_H);
       buffer_list += convert_raw (z_plane_raw_high, z_plane_raw_low);
-      vTaskDelay (5);
+      //vTaskDelay (5);
     }
   return buffer_list / (Z_PLANE_D_C_SQUARED);
+}
+
+/**
+ * @brief Get raw velocity of gyro's z_plane
+ *
+ * @return int16_t (negative = right, positive = left, 0 = centered)
+ */
+int16_t
+z_plane_get_current_raw ()
+{
+  uint8 z_plane_raw_low, z_plane_raw_high;
+  int16_t z_plane_raw = 0;
+
+  I2C_Start ();
+  I2C_Write (GYRO_ADDR, GYRO_CTRL1_REG, GYRO_MODE_ACTIVE);
+  I2C_Write (GYRO_ADDR, GYRO_CTRL4_REG, GYRO_FULL_SCALE_SELECTION);
+
+  z_plane_raw_low = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_L);
+  z_plane_raw_high = I2C_Read (GYRO_ADDR, OUT_Z_AXIS_H);
+  z_plane_raw = convert_raw (z_plane_raw_high, z_plane_raw_low);
+
+  return z_plane_raw;
 }
 
 static uint8_t
@@ -122,7 +144,7 @@ fix_heading (int *ang_sum, size_t loop_duration)
     //Get time
     tick = xTaskGetTickCount() - tick;
     //Get angle
-    *ang_sum += z_plane * 100 / tick;
+    *ang_sum += z_plane;
 
     //Constrict ang_sum to 100 in order to determine speed
     if(*ang_sum < -100 || *ang_sum > 100)
@@ -133,11 +155,12 @@ fix_heading (int *ang_sum, size_t loop_duration)
       ang_for_speed = *ang_sum;
 
     speed = (ang_for_speed < 30) ? 50 : ang_for_speed * 2;
-    //
+    //IS_RIGHT?
     if(*ang_sum IS_LEFT)
     {
       motor_tank_turn_right(speed, 33);
     }
+    //IS_LEFT?
     else if(*ang_sum IS_RIGHT)
     {
       motor_tank_turn_left(speed, 55);
