@@ -99,28 +99,14 @@ try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr)
 {
   if (ang_sum IS_LEFT)
   {
-    if(ang_sum > 50) ang_sum = 50;
-    if (*cvr > 0) *cvr -= (ang_sum / 4) ? (ang_sum / 4) : 1;
-    else if (*cvl < 256) *cvl += (ang_sum / 4) ? (ang_sum / 4) : 1;
-
-    if (*cvr < 0) *cvr = 0;
-    if (*cvl > 255) *cvl = 255;
+    if (*cvr > 90) *cvr -= 1;
+    else if (*cvl < 180) *cvl += 1;
   }
   else if (ang_sum IS_RIGHT)
   {
     ang_sum *= -1;
-    if(ang_sum > 50) ang_sum = 50;
-    if (*cvl > 0) *cvl -= (ang_sum / 4) ? (ang_sum / 4) : 1;
-    else if (*cvr < 256) *cvr += (ang_sum / 4) ? (ang_sum / 4) : 1;
-
-    if (*cvl < 0) *cvl = 0;
-    if (*cvr > 255) *cvr = 255;
-  }
-
-  if (*cvr < 90 && *cvl < 90)
-  {
-    *cvr += 50;
-    *cvl += 50;
+    if (*cvl > 90) *cvl -= 1;
+    else if (*cvr < 180) *cvr += 1;
   }
   SetMotors (0, 0, *cvl, *cvr, 0);
   return 0;
@@ -146,9 +132,9 @@ fix_heading (int *ang_sum, size_t loop_duration)
     //Get angle
     *ang_sum += z_plane;
 
-    //Constrict ang_sum to 100 in order to determine speed
-    if(*ang_sum < -100 || *ang_sum > 100)
-      ang_for_speed = 100;
+    //Constrict ang_sum to 90 in order to determine speed
+    if(*ang_sum < -90 || *ang_sum > 90)
+      ang_for_speed = 90;
     else if(*ang_sum < 0)
       ang_for_speed = *ang_sum * -1;
     else
