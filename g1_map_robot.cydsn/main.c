@@ -126,8 +126,9 @@ zmain (json_command *cmd)
 void
 zmain (json_command *cmd)
 {
-  char status_message[400] = { 0 };
-  int message_len = 0;
+  bool error_flag = false;
+  //char status_message[400] = { 0 };
+  //int message_len = 0;
   motor_start ();
   motor_forward (0, 0);
   printf ("\nBoot\n");
@@ -139,7 +140,16 @@ zmain (json_command *cmd)
     {
       //message_len = snprintf (status_message, 400, "{Ang v: %d}", z_plane_get_current());
       //print_mqtt ("t_status", "%.*s", message_len, status_message);
-      motor_forward_for_s (100, 2, &angle_sum);
+      error_flag = motor_forward_for_s (100, 2, &angle_sum);
+      if(error_flag)
+      {
+        print_mqtt("t_status", "%.*s", 40, "Movement error\n\rPress button to reset\r\n");
+        printf("Movement error\n\rPress button to reset\r\n");
+        while (SW1_Read ());
+        print_mqtt("t_status", "%.*s", 11, "Continue\r\n");
+        printf("Continue\r\n");
+        vTaskDelay(1000);
+      }
       //vTaskDelay(1000);
     }
 }
