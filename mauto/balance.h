@@ -28,7 +28,7 @@ int16_t z_plane_get_current_raw ();
 uint8_t predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
                                  int *integral);
 
-uint8_t try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr);
+uint8_t try_to_correct (int ang_sum, uint8_t *cur_velocity_left, uint8_t *cur_velocity_right);
 uint8_t fix_heading (int *ang_sum, size_t loop_duration);
 
 #endif /* BALANCE_H */
