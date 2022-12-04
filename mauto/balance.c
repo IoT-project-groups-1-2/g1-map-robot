@@ -95,20 +95,20 @@ predict_motor_direction (int z_plane_velocity, uint8_t current_speed,
 
 //Pass angle_sum
 uint8_t
-try_to_correct (int ang_sum, uint8_t *cvl, uint8_t *cvr)
+try_to_correct (int ang_sum, uint8_t *cur_velocity_left, uint8_t *cur_velocity_right)
 {
   if (ang_sum IS_LEFT)
   {
-    if (*cvr > 90) *cvr -= 1;
-    else if (*cvl < 180) *cvl += 1;
+    if (*cur_velocity_right > 90) *cur_velocity_right -= 1;
+    else if (*cur_velocity_left < 180) *cur_velocity_left += 1;
   }
   else if (ang_sum IS_RIGHT)
   {
     ang_sum *= -1;
-    if (*cvl > 90) *cvl -= 1;
-    else if (*cvr < 180) *cvr += 1;
+    if (*cur_velocity_left > 90) *cur_velocity_left -= 1;
+    else if (*cur_velocity_right < 180) *cur_velocity_right += 1;
   }
-  SetMotors (0, 0, *cvl, *cvr, 0);
+  SetMotors (0, 0, *cur_velocity_left, *cur_velocity_right, 0);
   return 0;
 }
 
