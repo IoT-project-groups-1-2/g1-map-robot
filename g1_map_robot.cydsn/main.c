@@ -99,59 +99,77 @@ zmain (json_command* cmd)
 #endif
 
 #if LIDAR
-void
-zmain (json_command *cmd)
+void zmain(json_command *cmd)
 {
-  printf ("\nBoot\n");
+  printf("\nBoot\n");
   int distance = 0;
   uint64_t ticks = 0;
   uint64_t res = 0;
-  Lidar_start ();
+  Lidar_start();
   while (true)
+  {
+    ticks++;
+    distance = Lidar_get_distance();
+    if (distance != -1)
     {
-      ticks++;
-      distance = Lidar_get_distance ();
-      if (distance != -1)
-        {
-          res++;
-          printf ("(%llu:%llu) Distance = %d\r\n", ticks, res, distance);
-        }
-      // if(distance != -1) printf("Distance = %d\r\n", distance);
-      vTaskDelay (1);
+      res++;
+      printf("(%llu:%llu) Distance = %d\r\n", ticks, res, distance);
     }
+    // if(distance != -1) printf("Distance = %d\r\n", distance);
+    vTaskDelay(1);
+  }
 }
 #endif
 
 #if GYRO
-void
-zmain (json_command *cmd)
+void zmain(json_command *cmd)
 {
   bool error_flag = false;
-  //char status_message[400] = { 0 };
-  //int message_len = 0;
-  motor_start ();
-  motor_forward (0, 0);
-  printf ("\nBoot\n");
+  // char status_message[400] = { 0 };
+  // int message_len = 0;
+  motor_start();
+  motor_forward(0, 0);
+  printf("\nBoot\n");
   print_mqtt("t_status", "%.*s", 13, "MQTT Ready\n\r");
   print_mqtt("t_status", "%.*s", 28, "Waiting for button press.\n\r");
-  while (SW1_Read ());
+  while (SW1_Read())
+    ;
   int angle_sum = 0;
   while (true)
+  {
+    // message_len = snprintf (status_message, 400, "{Ang v: %d}", z_plane_get_current());
+    // print_mqtt ("t_status", "%.*s", message_len, status_message);
+    error_flag = motor_forward_for_s(100, 2, &angle_sum);
+    if (error_flag)
     {
-      //message_len = snprintf (status_message, 400, "{Ang v: %d}", z_plane_get_current());
-      //print_mqtt ("t_status", "%.*s", message_len, status_message);
-      error_flag = motor_forward_for_s (100, 2, &angle_sum);
-      if(error_flag)
-      {
-        print_mqtt("t_status", "%.*s", 40, "Movement error\n\rPress button to reset\r\n");
-        printf("Movement error\n\rPress button to reset\r\n");
-        while (SW1_Read ());
-        print_mqtt("t_status", "%.*s", 11, "Continue\r\n");
-        printf("Continue\r\n");
-        vTaskDelay(1000);
-      }
-      //vTaskDelay(1000);
+      print_mqtt("t_status", "%.*s", 40, "Movement error\n\rPress button to reset\r\n");
+      printf("Movement error\n\rPress button to reset\r\n");
+      while (SW1_Read())
+        ;
+      print_mqtt("t_status", "%.*s", 11, "Continue\r\n");
+      printf("Continue\r\n");
+      vTaskDelay(1000);
     }
+    // vTaskDelay(1000);
+  }
+}
+#endif
+#if 1
+void zmain(json_command *cmd)
+{
+  bool error_flag = false;
+
+  printf("\nBoot\n");
+  print_mqtt("t_status", "%.*s", 13, "MQTT Ready\n\r");
+  print_mqtt("t_status", "%.*s", 28, "Waiting for button press.\n\r");
+  // while (SW1_Read ());
+  int angle_sum = 0;
+  while (true)
+  {
+    print_mqtt("t_status", "%.*s", 11, "Continue\r\n");
+    vTaskDelay(1000);
+    // vTaskDelay(1000);
+  }
 }
 #endif
 
