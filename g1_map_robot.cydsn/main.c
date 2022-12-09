@@ -41,7 +41,6 @@ them. <br> <br><br>
 #include "Nunchuk.h"
 #include "Reflectance.h"
 #include "Ultra.h"
-#include "balance.h"
 #include "json_str.h"
 #include "mqtt_sender.h"
 #include "serial1.h"
@@ -140,17 +139,8 @@ zmain (json_command *cmd)
     {
       //message_len = snprintf (status_message, 400, "{Ang v: %d}", z_plane_get_current());
       //print_mqtt ("t_status", "%.*s", message_len, status_message);
-      error_flag = motor_forward_for_s (100, 2, &angle_sum);
-      if(error_flag)
-      {
-        print_mqtt("t_status", "%.*s", 40, "Movement error\n\rPress button to reset\r\n");
-        printf("Movement error\n\rPress button to reset\r\n");
-        while (SW1_Read ());
-        print_mqtt("t_status", "%.*s", 11, "Continue\r\n");
-        printf("Continue\r\n");
-        vTaskDelay(1000);
-      }
-      //vTaskDelay(1000);
+      //error_flag = motor_forward_for_s (100, 2, &angle_sum);
+      vTaskDelay(1000);
     }
 }
 #endif
