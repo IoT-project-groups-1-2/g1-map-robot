@@ -2,6 +2,8 @@
 #include "json_str.h"
 #include "mauto.h"
 
+static bool motors_working = false;
+
 /**
  * @brief Handle the command stucture & execute
  *
@@ -10,15 +12,18 @@
 void
 json_str_handle_cmd (json_command *cmd)
 {
-  motor_stop ();
-  motor_start ();
-
-  if(cmd->mode)
+  if (cmd->speed == 0 && cmd->duration == 0 && motors_working)
   {
-    auto_handle(cmd);
+    motor_stop();
+    motors_working = false;
   }
   else
   {
+    if (!motors_working)
+    {
+      motor_start ();
+      motors_working = true;
+    }
     switch (cmd->direction)
     {
     case M_DIR_FORWARD:
