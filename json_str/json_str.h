@@ -26,7 +26,7 @@ typedef struct json_command
   unsigned int duration;
   int speed;
   MotorDirection direction;
-  bool mode;
+  bool forced_stop;
 } json_command;
 
 bool json_str_int_from_context (char *json_str, const char *context,

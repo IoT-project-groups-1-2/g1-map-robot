@@ -5,11 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* FreeRTOS includes. */
-#include "FreeRTOS.h"
-#include "queue.h"
-#include "task.h"
-
 #include "MQTTClient.h"
 #include "MQTTFreeRTOS.h"
 #include "json_str.h"
@@ -28,13 +23,13 @@ typedef struct mqtt_message_
 static QueueHandle_t msg_q;
 static QueueHandle_t buf_q;
 static char buffers[MAX_MESSAGE][BUFFER_SIZE];
-static json_command *mqtt_json_cmd;
 
 void
 MQTTSendTaskInit (void)
 {
   msg_q = xQueueCreate (MAX_MESSAGE, sizeof (mqtt_message_t));
   buf_q = xQueueCreate (MAX_MESSAGE, sizeof (char *));
+  received_settings_mqtt = xQueueCreate(MAX_MESSAGE, sizeof(json_command));
 }
 
 #if ZUMO_SIMULATOR == 0
@@ -43,6 +38,7 @@ MQTTSendTaskInit (void)
 static void
 handler (MessageData *msg)
 {
+  json_command mqtt_json_cmd;
   char json_raw[JSON_STR_SEND_MAX_STRING_LEN];
   memcpy (json_raw, msg->message->payload, msg->message->payloadlen);
   json_raw[msg->message->payloadlen] = 0;
@@ -51,21 +47,27 @@ handler (MessageData *msg)
   json_str_int_from_context (json_raw, "direction", &dir);
   json_str_int_from_context (json_raw, "speed", &speed);
   json_str_int_from_context (json_raw, "duration", &dur);
-  mqtt_json_cmd->direction = (MotorDirection)dir;
-  mqtt_json_cmd->speed = speed;
-  mqtt_json_cmd->duration = dur;
+  mqtt_json_cmd.direction = (MotorDirection)dir;
+  mqtt_json_cmd.speed = speed;
+  mqtt_json_cmd.duration = dur;
+  mqtt_json_cmd.forced_stop = true; //Temporary force true in here.
   printf ("Current:\n"
           "Dir: %d\n"
           "Speed: %d\n"
-          "Duration: %d\n",
-          mqtt_json_cmd->direction, mqtt_json_cmd->speed,
-          mqtt_json_cmd->duration);
+          "Duration: %d\n"
+          "Forced stop: %d\n",
+          mqtt_json_cmd.direction,
+          mqtt_json_cmd.speed,
+          mqtt_json_cmd.duration,
+          mqtt_json_cmd.forced_stop);
+  //If queue is full, message will be lost.
+  //Shouldn't happen though, since movement handler must execute it immediately.
+  xQueueSendToBack(received_settings_mqtt, (void *) &mqtt_json_cmd, 0);
 }
 
 void
 MQTTSendTask (void *pvParameters)
 {
-  mqtt_json_cmd = (json_command *)pvParameters;
   MQTTClient client;
   Network network;
   unsigned char sendbuf[128], readbuf[128];
