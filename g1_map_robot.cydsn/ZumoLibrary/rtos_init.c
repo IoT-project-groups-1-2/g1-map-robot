@@ -38,6 +38,7 @@ prvHardwareSetup (void)
   /* Start-up the peripherals. */
   UART_1_Start ();
   UART_2_Start ();
+  UART_3_Start ();
 
   /* Task initializations */
   vSerial1PortInitMinimal (256);

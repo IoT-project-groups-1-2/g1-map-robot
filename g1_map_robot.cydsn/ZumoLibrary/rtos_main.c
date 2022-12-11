@@ -41,7 +41,7 @@ main (void)
 
 #if START_MQTT
   (void)xTaskCreate (MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10, NULL,
-                     tskIDLE_PRIORITY + 1, NULL);
+                     tskIDLE_PRIORITY + 2, NULL);
 #endif
 
 #if ZUMO_SIMULATOR
