@@ -12,6 +12,6 @@ void MQTTSendTaskInit (void);
 int print_mqtt (const char *topic, const char *fmt, ...);
 
 //Public queue
-QueueHandle_t received_settings_mqtt;
+extern QueueHandle_t received_settings_mqtt;
 
 #endif

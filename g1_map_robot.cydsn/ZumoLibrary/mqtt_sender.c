@@ -20,6 +20,7 @@ typedef struct mqtt_message_
 
 #define MAX_MESSAGE 32
 #define BUFFER_SIZE 80
+QueueHandle_t received_settings_mqtt;
 static QueueHandle_t msg_q;
 static QueueHandle_t buf_q;
 static char buffers[MAX_MESSAGE][BUFFER_SIZE];
