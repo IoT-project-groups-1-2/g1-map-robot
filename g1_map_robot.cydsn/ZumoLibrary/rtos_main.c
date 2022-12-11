@@ -23,68 +23,35 @@
  * http://www.FreeRTOS.org
  * http://aws.amazon.com/freertos
  *
- * 1 tab == 4 spaces!
  */
 
-#include <project.h>
-#include <stdio.h>
-
-/* RTOS includes. */
-#include "FreeRTOS.h"
-#include "queue.h"
-#include "semphr.h"
-#include "task.h"
-
-#include "debug_uart.h"
-#include "json_str.h"
-#include "mqtt_sender.h"
-#include "serial.h"
-#include "serial1.h"
-#include "simulator.h"
-#include "zumo_config.h"
-#include "movement.h"
+#include "rtos_init.h"
 
 #ifndef START_MQTT
 #define START_MQTT 0
 #endif
 
-//Tasks
-extern void vMovementTask( void *pvParameters);
-
-/*
- * Installs the RTOS interrupt handlers and starts the peripherals.
- */
-static void prvHardwareSetup (void);
-/*---------------------------------------------------------------------------*/
-
 int
 main (void)
 {
-  /* Place your initialization/startup code here (e.g. MyInst_Start()) */
+  // Initialization/startup code. //
   prvHardwareSetup ();
 
-  /* Task initializations */
-  vSerial1PortInitMinimal (256);
-  RetargetInit ();
+  // Task creation //
 
-  // DebugUartTaskInit();
-  //( void ) xTaskCreate( DebugUartTask, "DbgUart", configMINIMAL_STACK_SIZE,
-  // NULL, tskIDLE_PRIORITY + 1, NULL ); ( void ) xTaskCreate(
-  // DebugCommandTask, "DbgCmd", configMINIMAL_STACK_SIZE * 3, NULL,
-  // tskIDLE_PRIORITY + 1, NULL );
-
-  (void)xTaskCreate (vMovementTask, "Movement_handler", configMINIMAL_STACK_SIZE * 10, NULL,
-                     tskIDLE_PRIORITY + 1, NULL);
-#if START_MQTT == 1
-  MQTTSendTaskInit ();
+#if START_MQTT
   (void)xTaskCreate (MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10, NULL,
                      tskIDLE_PRIORITY + 1, NULL);
 #endif
-#if ZUMO_SIMULATOR == 1
-  SimulatorTaskInit ();
+
+#if ZUMO_SIMULATOR
   (void)xTaskCreate (SimulatorTask, "Simulator", configMINIMAL_STACK_SIZE * 10,
                      NULL, tskIDLE_PRIORITY + 2, NULL);
 #endif
+
+  //Heavy relies on mqtt, so if mqtt is not started then functionality is very limited.
+  (void)xTaskCreate (vMovementTask, "Movement_handler", configMINIMAL_STACK_SIZE * 10, NULL,
+                     tskIDLE_PRIORITY + 1, NULL);
 
   /* Will only get here if there was insufficient memory to create the idle
 task.  The idle task is created within vTaskStartScheduler(). */
@@ -98,61 +65,3 @@ task.  The idle task is created within vTaskStartScheduler(). */
   for (;;)
     ;
 }
-/*---------------------------------------------------------------------------*/
-
-#if 0
-void __malloc_lock (struct _reent *reent) {
-    (void) reent;
-    vTaskSuspendAll();
-}
-
-void __malloc_unlock (struct _reent *reent) {
-    (void) reent;
-    xTaskResumeAll();
-}
-#endif
-
-void
-prvHardwareSetup (void)
-{
-  /* Port layer functions that need to be copied into the vector table. */
-  extern void xPortPendSVHandler (void);
-  extern void xPortSysTickHandler (void);
-  extern void vPortSVCHandler (void);
-  extern cyisraddress CyRamVectors[];
-
-  /* Install the OS Interrupt Handlers. */
-  CyRamVectors[11] = (cyisraddress)vPortSVCHandler;
-  CyRamVectors[14] = (cyisraddress)xPortPendSVHandler;
-  CyRamVectors[15] = (cyisraddress)xPortSysTickHandler;
-
-  /* Start-up the peripherals. */
-  UART_1_Start ();
-  UART_2_Start ();
-}
-/*---------------------------------------------------------------------------*/
-
-/*---------------------------------------------------------------------------*/
-
-void
-vApplicationStackOverflowHook (TaskHandle_t pxTask, char *pcTaskName)
-{
-  (void)pxTask;
-  (void)pcTaskName;
-  /* The stack space has been execeeded for a task, considering allocating
-   * more. */
-  taskDISABLE_INTERRUPTS ();
-  for (;;)
-    ;
-}
-/*---------------------------------------------------------------------------*/
-
-void
-vApplicationMallocFailedHook (void)
-{
-  /* The heap space has been execeeded. */
-  taskDISABLE_INTERRUPTS ();
-  for (;;)
-    ;
-}
-/*---------------------------------------------------------------------------*/

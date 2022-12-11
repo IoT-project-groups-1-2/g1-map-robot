@@ -24,6 +24,8 @@
 #include "movement.h"
 
 #if START_MQTT == 1
+QueueHandle_t received_settings_mqtt;
+
 void
 vMovementTask( void *pvParameters)
 {
@@ -52,6 +54,7 @@ vMovementTask( void *pvParameters)
       //Execute command received from mqtt.
       json_str_handle_cmd(&command);
     }
+    //Block here to allow idle task to run in case if queue is always full.
     vTaskDelay(1);
   }
 }
@@ -62,7 +65,9 @@ vMovementTask( void *pvParameters)
   while (1)
   {
     //Place code to execute here. Robot shouldn't be used without mqtt
-    vTaskDelay(1000);
+    
+    //Block here to allow idle task to run.
+    vTaskDelay(1);
   }
 }
 #endif
