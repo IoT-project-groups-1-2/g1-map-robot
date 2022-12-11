@@ -1,8 +1,10 @@
 #ifndef LIDAR_H_
 #define LIDAR_H_
 
-#include "stdint.h"
 #include <project.h>
+#include "stdint.h"
+#include "FreeRTOS.h"
+#include "queue.h"
 
 #define LIDAR_PKG_HEADER 0x59
 #define LIDAR_PKG_SIZE 9
@@ -12,5 +14,8 @@ Lidar_start();
 
 int
 Lidar_get_distance();
+
+//Public queue
+extern QueueHandle_t received_distance;
 
 #endif //LIDAR_H_

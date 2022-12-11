@@ -1,7 +1,21 @@
 #include "Lidar.h"
 #include "stdint.h"
+#include "task.h"
 
 static int old_dist = -1;
+QueueHandle_t received_distance;
+
+void
+vLidarTask(void *pvParameters)
+{
+  int dist;
+  while (1)
+  {
+    dist = Lidar_get_distance();
+    xQueueSendToBack(received_distance, (void *) &dist, 0);
+    vTaskDelay(1);
+  }
+}
 
 /**
  * @brief Starts UART for Lidar sensor and reads buffer for the first time, since it will most probably fail.
@@ -9,7 +23,11 @@ static int old_dist = -1;
 void
 Lidar_start()
 {
-  UART_3_Start();
+  received_distance = xQueueCreate(1, sizeof(int));
+  //Heavy relies on mqtt, so if mqtt is not started then functionality is very limited.
+  (void)xTaskCreate (vLidarTask, "vLidarTask", configMINIMAL_STACK_SIZE * 10, NULL,
+                     tskIDLE_PRIORITY + 2, NULL);
+
   Lidar_get_distance();
 }
 
@@ -29,7 +47,7 @@ Lidar_get_distance()
   if(count >= LIDAR_PKG_SIZE)
     for(int q = 0; q < count; ++q)
       bytes[q] = UART_3_GetByte();
-  
+
   /*
   It is a bad idea to treat any consequent 0x59 0x59 as a start of UART transaction,
   but it will do for our purposes.

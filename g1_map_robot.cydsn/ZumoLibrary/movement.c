@@ -25,33 +25,52 @@
 
 #if START_MQTT == 1
 QueueHandle_t received_settings_mqtt;
+QueueHandle_t received_distance;
 
 void
 vMovementTask( void *pvParameters)
 {
+  int distance = 0;
   json_command command;
   command.direction = 0;
   command.duration = 0;
   command.speed = 0;
   command.forced_stop = true;
-  print_mqtt("t_status", "%.*s", 13, "MQTT Ready\r\n");
-  print_mqtt("t_status", "%.*s", 28, "Movement handler started.\r\n");
-  print_mqtt("t_status", "%.*s", 28, "Waiting for button press.\r\n");
+  print_mqtt("t_debug", "%.*s", 13, "MQTT Ready\r\n");
+  print_mqtt("t_debug", "%.*s", 28, "Movement handler started.\r\n");
+  print_mqtt("t_debug", "%.*s", 28, "Waiting for button press.\r\n");
   while (SW1_Read ());
+  print_mqtt("t_debug", "%.*s", 17, "Button pressed\r\n");
+  
+  Lidar_start();
+
   while (1)
   {
-    //Wait on Lidar queue for distance value,
-    // since robot must be able to be used as distance sensor at all times.
+    //Wait on Lidar queue for distance value.
+    xQueueReceive(received_distance, &distance, pdMS_TO_TICKS(10));
 
     //Wait on mqtt queue for command.
-    if(xQueueReceive(received_settings_mqtt, &command, portMAX_DELAY) == pdFALSE)
+    xQueueReceive(received_settings_mqtt, &command, 0);
+
+    char buf[255];
+    snprintf(buf, 255, "Distance: %d", distance);
+    print_mqtt("t_debug", "%.*s", strlen(buf), buf);
+    //Execute command received from mqtt.
+    if(command.forced_stop)
     {
-      //Shouldn't ever happen, since we always wait for an activity on the mqtt.
-      continue;
+      if((distance <= 15 && command.direction == M_DIR_FORWARD) ||
+       (distance <= 10 && (command.direction == M_DIR_LEFT || command.direction == M_DIR_RIGHT)))
+      {
+        motor_forward(0, 0);
+        Beep(50, 25);
+      }
+      else
+      {
+        json_str_handle_cmd(&command);
+      }
     }
     else
     {
-      //Execute command received from mqtt.
       json_str_handle_cmd(&command);
     }
     //Block here to allow idle task to run in case if queue is always full.
