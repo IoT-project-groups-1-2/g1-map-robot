@@ -302,7 +302,7 @@
                         f_stop.style.backgroundColor = "black"
                         note.style.display = "block";
                         //console.log(f_stop.value);
-                    }   
+                    }
                 break;
             }
 
@@ -312,9 +312,9 @@
                 if(speed > max_speed){
                     speed = max_speed;
                 }
-                if(f_stop === 1){
-                    speed = 0;
-                }
+                //if(f_stop === 1){
+                //    speed = 0;
+                //}
             }
             /*
             if(last_key === 'KeyS' && key === 'KeyW'){
@@ -336,9 +336,9 @@
                 */
             }
             
-            if(last_key !== key && f_stop === 1){
-                speed = 10;
-            }
+            //if(last_key !== key && f_stop === 1){
+            //    speed = 10;
+            //}
             
             if(key === 'KeyQ'){
                 speed = 0;
@@ -362,7 +362,7 @@
                     "direction": command,
                     "speed": send_speed,
                     "duration": duration,
-                    "forced_stop": f_stop.value
+                    "forced_stop": parseInt(f_stop.value)
                 }
 
             if(state.value === "1"){
