@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <link href='http://fonts.googleapis.com/css?family=Monoton' rel='stylesheet' type='text/css'>   
+    <title>Drive Robot</title>
+    <style>
+        h1{
+            height: 100px;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 50px;
+            font-family: 'Monoton', sans-serif;
+            font-size: 75px;
+            font-weight: normal;
+        }
+        .buttons{
+            height: 210px;
+            text-align: center;
+            margin-top: 80px;
+            margin-bottom: 50px;
+        }
+        .button{
+            width: 70px;
+            height: 70px;
+            border-radius: 5px;
+            font-size: xx-large;
+            text-align: center;
+            background-color: darkgrey;
+            color: white;
+        }
+        button:focus{
+            color: white;
+            background-color: black;
+        }
+        label{
+            font-size: 30px;
+        }
+        .slider{
+            text-align: center;
+            margin-top: 100px;
+        }
+        output{
+            font-size: 30px;
+            /*border: 2px solid black;*/
+            text-align: center;
+        }
+        /*
+        input[type=range]{
+            appearance: auto;
+            -webkit-appearance: none;
+            border-radius: 3px;
+            width: 130px;
+            height: 20px;
+            outline: none;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+            margin: 10px;
+            background: darkgrey;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            appearance: auto;
+            -webkit-appearance: none;
+            width:10px;
+            height: 35px;
+            border-radius: 3px;
+            background: black;
+            box-shadow: 1px 2px 3px rgba(0,0,0,0.6);
+        }
+        */
+        #note{
+            display: none;
+            color: red;
+            font-size: 30px;
+        }
+        #stop{
+            margin-top: 4px;
+            margin-bottom: 4px;
+            background-color: red;
+        }
+        #status{
+            height: 35px;
+            width: 35px;
+            border-radius: 50%;
+            background-color: red;
+            border: 2px solid black;
+        }
+        .state{           
+            height: 40px;
+            text-align: center;
+        }
+        #st{
+            vertical-align: text-bottom;
+            font-size: 30px;
+        }
+        #f_stop{
+            background-color: darkgray;
+            font-size: large;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+</head>
+<body onload="document.getElementById('status').value = '0'">
+    <h1>ROBOT CONTROLLER</h1>
+    <div class="state">
+        <span id="st">Robot status </span>
+        <button type="button" id="status" value="0"></button>
+        <br><br>
+        <button type="button" id="f_stop" name="KeyZ" value="0">Force stop</button>
+    </div>
+    <div class="buttons">
+        <button type="button" class="button" id="f" name="KeyW" value="0">&#129153;</button>
+        <br>    
+        <button type="button" class="button" id="l" name="KeyA" value="2">&#129152;</button>
+        <button type="button" class="button" id="stop" name="KeyQ" value="0">&#9746;</button>
+        <button type="button" class="button" id="r" name="KeyD" value="3">&#129154;</button>        
+        <br>
+        <button type="button" class="button" id="b" name="KeyS" value="1">&#129155;</button>        
+    </div>
+    <div class="slider">
+        <span id="note">Forced stop activated</span>
+        <br>
+        <label for="show_speed" id="sp">Current speed: </label>
+        <input type="hidden" id="speed" min="0" max="250" onchange="show_speed.value=this.value" value="0">
+        <output id="show_speed" value="0">0</output>
+        <br>
+        <label for="show_dist" id="sd">Distance to object: </label>
+        <input type="hidden" id="dist" min="0" onchange="show_dist.value=this.value" value="0">
+        <output id="show_dist" value="0">0</output>
+        <!--<label for="dur">Set sensitivity</label>
+        <input type="range" id="dur" min="0" max="2000" step="100" oninput="show_dur.value=this.value" value="100">
+        <output id="show_dur">100</output>-->
+    </div>  
+    
+    
+    <script>
+        const client = new Paho.MQTT.Client("127.0.0.1", Number(9000), "drive");
+        let key;
+        let last_key = 'KeyW';
+        let speed = 0;
+        let send_speed = 0;
+        let command = 0;
+        const max_speed = 250;
+        const ch_sp = 10;
+        const duration = 0;
+        let distance = 0;
+        let status = 0;
+        let data;
+
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        // connect the client
+        client.connect({onSuccess:onConnect,
+                        userName: 'SmartIotMQTT',
+                        password: 'SmartIot'});
+
+        // called when the client connects
+        function onConnect() {
+            // Once a connection has been made, make a subscription
+            console.log("Drive connected");
+            client.subscribe("t_status");
+            //client.subscribe("location");
+            client.subscribe("t_command");           
+        }
+
+        // called when the client loses its connection
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("onConnectionLost:"+responseObject.errorMessage);
+            }
+        }
+
+        // called when a message arrives
+        function onMessageArrived(message) {
+            data = JSON.parse(message.payloadString);
+            //distance = data.distance;
+            document.getElementById('show_dist').value = data.distance;
+            console.log(data);
+        }
+        
+        btn_fw = document.getElementById('f');
+        btn_bw = document.getElementById('b');
+        btn_left = document.getElementById('l');
+        btn_right = document.getElementById('r');
+        state = document.getElementById('status');
+        btn_stop = document.getElementById('stop');
+        note = document.getElementById('note');
+        f_stop = document.getElementById('f_stop');
+
+        btn_fw.addEventListener('click', ()=>{
+            key = btn_fw.name;
+            move(key);
+        });
+        btn_bw.addEventListener('click', ()=>{
+            key = btn_bw.name;
+            move(key);
+        });
+        btn_left.addEventListener('click', ()=>{
+            key = btn_left.name;
+            move(key);
+        });
+        btn_right.addEventListener('click', ()=>{
+            key = btn_right.name;
+            move(key);
+        });
+        btn_stop.addEventListener('click', ()=>{
+            key = btn_stop.name;
+            move(key);
+        });        
+        state.addEventListener('click', ()=>{
+            console.log('Status request');
+            setStatus();
+        });
+        f_stop.addEventListener('click', ()=>{
+            if(f_stop.value == 1){                
+                f_stop.value = 0;
+                f_stop.style.backgroundColor = "darkgrey";
+                note.style.display = "none";
+                console.log(f_stop.value);
+            }
+            else{                
+                f_stop.value = 1;
+                f_stop.style.backgroundColor = "black"
+                f_stop.style.color = "white";
+                note.style.display = "block";
+                console.log(f_stop.value);
+            }
+            key = f_stop.name;
+        });
+
+        function setStatus(){
+            let msg = {
+                    "status": 1
+                    }
+            message = new Paho.MQTT.Message(JSON.stringify(msg));
+            message.destinationName = "t_status";
+            client.send(message);
+        }
+
+        document.body.addEventListener('keydown', getKey);
+
+        setInterval(getStatus, 10000);
+
+        function getStatus(){
+            //client.subscribe('t_status');
+            if(data !== undefined){
+                if(data.status === 1){
+                    state.value = 1;
+                    state.style.backgroundColor = 'green';
+                }
+                if(data.status === 0){
+                    state.value = 0;
+                    state.style.backgroundColor = 'red';
+                }
+            }
+        }
+
+        function getKey(e){
+            key = e.code;
+            move(key);
+        }
+
+        function move(key){
+            let command;
+            switch(key){
+                case 'KeyW':
+                    console.log('W pressed');
+                    btn_fw.focus();
+                    command = parseInt(btn_fw.value);
+                break;
+                case 'KeyS':
+                    console.log('S pressed');
+                    btn_bw.focus();
+                    command = parseInt(btn_bw.value);
+                    
+                break;
+                case 'KeyD':
+                    console.log('D pressed');
+                    btn_right.focus();
+                    command = parseInt(btn_right.value);
+                break;
+                case 'KeyA':
+                    console.log('A pressed');
+                    btn_left.focus();
+                    command = parseInt(btn_left.value);
+                break;
+                case 'KeyQ':
+                    command = parseInt(btn_stop.value);
+                    console.log('STOP');
+                break; 
+                case 'KeyZ':
+                    if(f_stop.value == 1){                
+                        f_stop.value = 0;
+                        f_stop.style.backgroundColor = "darkgrey"
+                        note.style.display = "none";
+                        //console.log(f_stop.value);
+                    }
+                    else{                
+                        f_stop.value = 1;
+                        f_stop.style.backgroundColor = "black"
+                        note.style.display = "block";
+                        //console.log(f_stop.value);
+                    }   
+                break;
+            }
+
+            
+            if(last_key === 'KeyW' && key === 'KeyW'){
+                speed += ch_sp;
+                if(speed > max_speed){
+                    speed = max_speed;
+                }
+                if(f_stop === 1){
+                    speed = 0;
+                }
+            }
+            /*
+            if(last_key === 'KeyS' && key === 'KeyW'){
+                speed = ch_sp;
+            }
+            */
+            if((last_key === 'KeyS' || last_key === 'KeyW') && key === 'KeyS'){
+                speed -= ch_sp;
+                if((speed * -1) > max_speed){
+                    speed = -1 * max_speed;
+                }
+                if(speed < 0){
+                    command = parseInt(btn_bw.value);
+                }
+                /*
+                else{
+                    command = parseInt(btn_fw.value);
+                }
+                */
+            }
+            
+            if(last_key !== key && f_stop === 1){
+                speed = 10;
+            }
+            
+            if(key === 'KeyQ'){
+                speed = 0;
+            }                    
+            if(speed < 0){
+                if(speed < -1 * max_speed){
+                    speed = -1 * max_speed;
+                }
+                send_speed = speed * (-1);                
+            }
+            else{
+                send_speed = speed;
+            }
+            last_key = key;  
+            document.getElementById('show_speed').value = send_speed;  
+            sendMQTT(command);        
+            console.log("Key: "+ key + ", Direction: " + command + " & speed: " + speed);
+        }       
+        function sendMQTT(command){
+            let msg = {
+                    "direction": command,
+                    "speed": send_speed,
+                    "duration": duration,
+                    "forced_stop": f_stop.value
+                }
+
+            if(state.value === "1"){
+                message = new Paho.MQTT.Message(JSON.stringify(msg));
+                message.destinationName = "t_command";
+                client.send(message);
+                console.log(message);
+                document.getElementById('speed').value = send_speed;
+                document.getElementById('show_speed').value = send_speed;               
+            }
+        }
+    </script>
+</body>
+</html>
