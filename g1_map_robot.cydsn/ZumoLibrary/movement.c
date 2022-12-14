@@ -52,9 +52,24 @@ vMovementTask( void *pvParameters)
     //Wait on mqtt queue for command.
     xQueueReceive(received_settings_mqtt, &command, 0);
 
-    char buf[255];
-    snprintf(buf, 255, "Distance: %d", distance);
+    //Use this to debug the command values.
+    /*
+    char buf[511];
+    snprintf(buf, 511, "Current:\n"
+         "Dir: %d\n"
+         "Speed: %d\n"
+         "Duration: %d\n"
+         "Forced stop: %d\n",
+         command.direction,
+         command.speed,
+         command.duration,
+         command.forced_stop);
     print_mqtt("t_debug", "%.*s", strlen(buf), buf);
+    */
+
+    //Temporary fix for wrong received duration. (We don't care about it.)
+    command.duration = 0;
+    
     //Execute command received from mqtt.
     if(command.forced_stop)
     {
@@ -73,7 +88,12 @@ vMovementTask( void *pvParameters)
     {
       json_str_handle_cmd(&command);
     }
-    //Block here to allow idle task to run in case if queue is always full.
+    //Send mqtt message:
+    char status_message[400] = { 0 };
+    const int message_len= snprintf (status_message, 400, "{\"status\":%d,\"distance\":%d}", 1, distance);
+    print_mqtt ("t_status", "%.*s", message_len, status_message);
+
+    //Block here to allow idle task to run for a bit.
     vTaskDelay(1);
   }
 }
