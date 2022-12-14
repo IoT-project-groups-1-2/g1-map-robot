@@ -82,3 +82,8 @@ Export/
 
 #VScode
 .vscode
+
+#Node
+Web/node_modules
+Web/package.json
+Web/package-lock.json
