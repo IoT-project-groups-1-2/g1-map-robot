@@ -41,14 +41,16 @@ handler(MessageData *msg)
   memcpy(json_raw, msg->message->payload, msg->message->payloadlen);
   json_raw[msg->message->payloadlen] = 0;
   printf("%.*s\n", msg->message->payloadlen, json_raw);
-  int dir, speed, dur;
+  int dir, speed, dur, forced_stop;
   json_str_int_from_context(json_raw, "direction", &dir);
   json_str_int_from_context(json_raw, "speed", &speed);
   json_str_int_from_context(json_raw, "duration", &dur);
+  json_str_int_from_context(json_raw, "forced_stop", &forced_stop); //0, 1
+
   mqtt_json_cmd.direction = (MotorDirection)dir;
   mqtt_json_cmd.speed = speed;
   mqtt_json_cmd.duration = dur;
-  mqtt_json_cmd.forced_stop = true; // Temporary force true in here.
+  mqtt_json_cmd.forced_stop = forced_stop;
   printf("Current:\n"
          "Dir: %d\n"
          "Speed: %d\n"
@@ -101,7 +103,7 @@ void MQTTSendTask(void *pvParameters)
   else
     printf("MQTT Connected\n");
 
-  MQTTSubscribe(&client, "settings", QOS0, handler);
+  MQTTSubscribe(&client, "t_command", QOS0, handler);
   while (true)
   {
     mqtt_message_t msg;
