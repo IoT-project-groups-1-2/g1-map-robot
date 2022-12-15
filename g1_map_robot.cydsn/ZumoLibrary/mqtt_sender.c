@@ -49,7 +49,7 @@ handler(MessageData *msg)
 
   mqtt_json_cmd.direction = (MotorDirection)dir;
   mqtt_json_cmd.speed = speed;
-  mqtt_json_cmd.duration = dur;
+  mqtt_json_cmd.duration = 0;
   mqtt_json_cmd.forced_stop = forced_stop;
   printf("Current:\n"
          "Dir: %d\n"
