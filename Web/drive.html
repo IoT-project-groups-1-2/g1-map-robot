@@ -17,7 +17,7 @@
             font-weight: normal;
         }
         .buttons{
-            height: 210px;
+            height: 180px;
             text-align: center;
             margin-top: 80px;
             margin-bottom: 50px;
@@ -73,6 +73,9 @@
             display: none;
             color: red;
             font-size: 30px;
+            animation-name: noting;
+            animation-duration: 3s;
+            animation-iteration-count: infinite;
         }
         #stop{
             margin-top: 4px;
@@ -98,6 +101,10 @@
             background-color: darkgray;
             font-size: large;
         }
+        @keyframes noting{
+            from {color: transparent;}
+            to {color: red;}
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
 </head>
@@ -120,13 +127,13 @@
     </div>
     <div class="slider">
         <span id="note">Forced stop activated</span>
-        <br>
+        <br><br>
         <label for="show_speed" id="sp">Current speed: </label>
-        <input type="hidden" id="speed" min="0" max="250" onchange="show_speed.value=this.value" value="0">
+        <!--<input type="hidden" id="speed" min="0" max="250" onchange="show_speed.value=this.value" value="0">-->
         <output id="show_speed" value="0">0</output>
         <br>
         <label for="show_dist" id="sd">Distance to object: </label>
-        <input type="hidden" id="dist" min="0" onchange="show_dist.value=this.value" value="0">
+        <input type="hidden" id="dist" min="0" max="12000" onchange="show_dist.value=this.value" value="0">
         <output id="show_dist" value="0">0</output>
         <!--<label for="dur">Set sensitivity</label>
         <input type="range" id="dur" min="0" max="2000" step="100" oninput="show_dur.value=this.value" value="100">
@@ -135,7 +142,7 @@
     
     
     <script>
-        const client = new Paho.MQTT.Client("127.0.0.1", Number(9000), "drive");
+        const client = new Paho.MQTT.Client("192.168.1.136", Number(9000), "drive"); //127.0.0.1
         let key;
         let last_key = 'KeyW';
         let speed = 0;
@@ -162,7 +169,7 @@
             console.log("Drive connected");
             client.subscribe("t_status");
             //client.subscribe("location");
-            client.subscribe("t_command");           
+            //client.subscribe("t_command");           
         }
 
         // called when the client loses its connection
@@ -175,8 +182,17 @@
         // called when a message arrives
         function onMessageArrived(message) {
             data = JSON.parse(message.payloadString);
-            //distance = data.distance;
-            document.getElementById('show_dist').value = data.distance;
+            if(data !== undefined){
+                if(data.status === 1){
+                    state.value = 1;
+                    state.style.backgroundColor = 'green';
+                }
+                if(data.status === 0){
+                    state.value = 0;
+                    state.style.backgroundColor = 'red';
+                }
+                document.getElementById('show_dist').value = data.distance;
+            }
             console.log(data);
         }
         
@@ -219,6 +235,7 @@
                 f_stop.style.backgroundColor = "darkgrey";
                 note.style.display = "none";
                 console.log(f_stop.value);
+                console.log(distance);
             }
             else{                
                 f_stop.value = 1;
@@ -241,20 +258,11 @@
 
         document.body.addEventListener('keydown', getKey);
 
-        setInterval(getStatus, 10000);
+        //setInterval(getStatus, 1000);
 
         function getStatus(){
-            //client.subscribe('t_status');
-            if(data !== undefined){
-                if(data.status === 1){
-                    state.value = 1;
-                    state.style.backgroundColor = 'green';
-                }
-                if(data.status === 0){
-                    state.value = 0;
-                    state.style.backgroundColor = 'red';
-                }
-            }
+            document.getElementById('show_dist').value = distance;
+            console.log("Get status");
         }
 
         function getKey(e){
@@ -266,23 +274,19 @@
             let command;
             switch(key){
                 case 'KeyW':
-                    console.log('W pressed');
                     btn_fw.focus();
                     command = parseInt(btn_fw.value);
                 break;
                 case 'KeyS':
-                    console.log('S pressed');
                     btn_bw.focus();
                     command = parseInt(btn_bw.value);
                     
                 break;
                 case 'KeyD':
-                    console.log('D pressed');
                     btn_right.focus();
                     command = parseInt(btn_right.value);
                 break;
                 case 'KeyA':
-                    console.log('A pressed');
                     btn_left.focus();
                     command = parseInt(btn_left.value);
                 break;
@@ -302,19 +306,22 @@
                         f_stop.style.backgroundColor = "black"
                         note.style.display = "block";
                         //console.log(f_stop.value);
-                    }
+                    }   
                 break;
             }
 
             
-            if(last_key === 'KeyW' && key === 'KeyW'){
+            if((last_key === 'KeyS' || last_key === 'KeyW')  && key === 'KeyW'){
                 speed += ch_sp;
                 if(speed > max_speed){
                     speed = max_speed;
                 }
-                //if(f_stop === 1){
-                //    speed = 0;
-                //}
+                if(speed < 0){
+                    command = parseInt(btn_bw.value);
+                }                
+                else{
+                    command = parseInt(btn_fw.value);
+                }
             }
             /*
             if(last_key === 'KeyS' && key === 'KeyW'){
@@ -322,23 +329,21 @@
             }
             */
             if((last_key === 'KeyS' || last_key === 'KeyW') && key === 'KeyS'){
-                speed -= ch_sp;
+                speed -= ch_sp;     
                 if((speed * -1) > max_speed){
                     speed = -1 * max_speed;
-                }
+                }           
                 if(speed < 0){
                     command = parseInt(btn_bw.value);
-                }
-                /*
+                }                
                 else{
                     command = parseInt(btn_fw.value);
-                }
-                */
+                }                
             }
-            
-            //if(last_key !== key && f_stop === 1){
-            //    speed = 10;
-            //}
+            /*
+            if(last_key !== key && f_stop === 1){
+                speed = 10;
+            }*/
             
             if(key === 'KeyQ'){
                 speed = 0;
@@ -355,8 +360,9 @@
             last_key = key;  
             document.getElementById('show_speed').value = send_speed;  
             sendMQTT(command);        
-            console.log("Key: "+ key + ", Direction: " + command + " & speed: " + speed);
+            //console.log("Key: "+ key + ", Direction: " + command + " & speed: " + speed);
         }       
+
         function sendMQTT(command){
             let msg = {
                     "direction": command,
@@ -369,9 +375,7 @@
                 message = new Paho.MQTT.Message(JSON.stringify(msg));
                 message.destinationName = "t_command";
                 client.send(message);
-                console.log(message);
-                document.getElementById('speed').value = send_speed;
-                document.getElementById('show_speed').value = send_speed;               
+                console.log(message.payloadString);         
             }
         }
     </script>
