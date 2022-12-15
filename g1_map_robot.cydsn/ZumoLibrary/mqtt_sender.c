@@ -31,6 +31,7 @@ void MQTTSendTaskInit(void)
   buf_q = xQueueCreate(MAX_MESSAGE, sizeof(char *));
   received_settings_mqtt = xQueueCreate(MAX_MESSAGE, sizeof(json_command));
 }
+static void handler(MessageData *msg);
 
 static void MQTT_WIFI_reconnect(MQTTClient * client,
                                 Network * net, 
@@ -54,6 +55,7 @@ static void MQTT_WIFI_reconnect(MQTTClient * client,
             vTaskDelay(1000);
         }
         printf("MQTT connection established.");
+        MQTTSubscribe(client, "t_command", QOS0, handler);
     }
 }
 
