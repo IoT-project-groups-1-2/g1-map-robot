@@ -13,11 +13,11 @@
 #define START_MQTT 1
 
 /* The following definitions must all be in double quotes */
-#define NETWORK_SSID "Default"
+#define NETWORK_SSID "SmartIotMQTT"
 
-#define NETWORK_PASSWORD "Pass"
+#define NETWORK_PASSWORD "SmartIot"
 
-#define MQTT_BROKER "0.0.0.0.0"
+#define MQTT_BROKER "192.168.1.136"
 
 #define MQTT_CLIENT_ID "Zumo101"
 
