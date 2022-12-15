@@ -4,6 +4,8 @@
 
 static bool motors_working = false;
 
+static MotorDirection last_dir = M_DIR_FORWARD;
+
 /**
  * @brief Handle the command stucture & execute
  *
@@ -28,9 +30,11 @@ json_str_handle_cmd (json_command *cmd)
     {
     case M_DIR_FORWARD:
       motor_forward (cmd->speed, cmd->duration);
+      last_dir = M_DIR_FORWARD;
       break;
     case M_DIR_BACKWARD:
       motor_backward (cmd->speed, cmd->duration);
+      last_dir = M_DIR_BACKWARD;
       break;
     case M_DIR_LEFT:
       if(cmd->speed == 0)
@@ -39,7 +43,10 @@ json_str_handle_cmd (json_command *cmd)
       }
       else
       {
-        motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
+        if(last_dir == M_DIR_FORWARD)
+          motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
+        else
+          motor_turn_backward (cmd->speed/50, cmd->speed, cmd->duration);
       }
       
       break;
@@ -50,7 +57,10 @@ json_str_handle_cmd (json_command *cmd)
       }
       else
       {
-        motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
+        if(last_dir == M_DIR_FORWARD)
+          motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
+        else
+          motor_turn_backward (cmd->speed, cmd->speed/50, cmd->duration);
       }
       break;
     default:

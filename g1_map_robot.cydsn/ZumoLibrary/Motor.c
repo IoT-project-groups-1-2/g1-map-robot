@@ -78,6 +78,20 @@ motor_turn (uint8 l_speed, uint8 r_speed, uint32 delay)
 }
 
 /**
+ * @brief    Moving motors to make a turn backward
+ * @details  moving left when l_speed < r_speed or moving right when l_speed >
+ * r_speed
+ * @param    uint8 l_speed : left motor speed value
+ * @param    uint8 r_speed : right motor speed value
+ * @param    uint32 delay : delay time
+ */
+void
+motor_turn_backward (uint8 l_speed, uint8 r_speed, uint32 delay)
+{
+  SetMotors (1, 1, l_speed, r_speed, delay);
+}
+
+/**
  * @brief    Moving motors to make a left tank turn.
  * @details  Sets backwards mode to left motor.
  * @param    uint8 speed : speed value
