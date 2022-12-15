@@ -78,7 +78,8 @@ vMovementTask( void *pvParameters)
       if((distance <= 15 && command.direction == M_DIR_FORWARD) ||
        (distance <= 10 && (command.direction == M_DIR_LEFT || command.direction == M_DIR_RIGHT)))
       {
-        motor_forward(0, 0);
+        command.speed = 0;
+        motor_forward(command.speed, 0);
         Beep(50, 25);
       }
       else
@@ -97,7 +98,7 @@ vMovementTask( void *pvParameters)
     {
       prev_timestamp = cur_timestamp;
       char status_message[400] = { 0 };
-      const int message_len= snprintf (status_message, 400, "{\"status\":%d,\"distance\":%d}", 1, distance);
+      const int message_len= snprintf (status_message, 400, "{\"status\":%d,\"distance\":%d, \"speed\":%d}", 1, distance, command.speed);
       print_mqtt ("t_status", "%.*s", message_len, status_message);
     }
 

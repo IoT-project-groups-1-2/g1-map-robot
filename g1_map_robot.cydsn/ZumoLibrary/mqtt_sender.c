@@ -44,7 +44,7 @@ handler(MessageData *msg)
   int dir, speed, dur, forced_stop;
   json_str_int_from_context(json_raw, "direction", &dir);
   json_str_int_from_context(json_raw, "speed", &speed);
-  json_str_int_from_context(json_raw, "duration", &dur);
+  //json_str_int_from_context(json_raw, "duration", &dur);
   json_str_int_from_context(json_raw, "forced_stop", &forced_stop); //0, 1
 
   mqtt_json_cmd.direction = (MotorDirection)dir;
@@ -54,11 +54,11 @@ handler(MessageData *msg)
   printf("Current:\n"
          "Dir: %d\n"
          "Speed: %d\n"
-         "Duration: %d\n"
+//         "Duration: %d\n"
          "Forced stop: %d\n",
          mqtt_json_cmd.direction,
          mqtt_json_cmd.speed,
-         mqtt_json_cmd.duration,
+//         mqtt_json_cmd.duration,
          mqtt_json_cmd.forced_stop);
   // If queue is full, message will be lost.
   // Shouldn't happen though, since movement handler must execute it immediately.
