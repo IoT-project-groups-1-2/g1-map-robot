@@ -76,7 +76,7 @@ vMovementTask( void *pvParameters)
     if(command.forced_stop)
     {
       if((distance <= 15 && command.direction == M_DIR_FORWARD) ||
-       (distance <= 10 && (command.direction == M_DIR_LEFT || command.direction == M_DIR_RIGHT)))
+       ((distance <= 10 && (command.direction == M_DIR_LEFT || command.direction == M_DIR_RIGHT)) && command.speed != 0))
       {
         command.speed = 0;
         motor_forward(command.speed, 0);
