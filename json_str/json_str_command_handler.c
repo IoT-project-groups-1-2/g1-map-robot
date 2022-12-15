@@ -33,10 +33,25 @@ json_str_handle_cmd (json_command *cmd)
       motor_backward (cmd->speed, cmd->duration);
       break;
     case M_DIR_LEFT:
-      motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
+      if(cmd->speed == 0)
+      {
+        motor_tank_turn_left(150, cmd->duration);
+      }
+      else
+      {
+        motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
+      }
+      
       break;
     case M_DIR_RIGHT:
-      motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
+      if(cmd->speed == 0)
+      {
+        motor_tank_turn_right(150, cmd->duration);
+      }
+      else
+      {
+        motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
+      }
       break;
     default:
       break;
