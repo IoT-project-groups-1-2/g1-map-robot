@@ -44,9 +44,9 @@ json_str_handle_cmd (json_command *cmd)
       else
       {
         if(last_dir == M_DIR_FORWARD)
-          motor_turn (cmd->speed/50, cmd->speed, cmd->duration);
+          motor_turn (cmd->speed/5, cmd->speed, cmd->duration);
         else
-          motor_turn_backward (cmd->speed/50, cmd->speed, cmd->duration);
+          motor_turn_backward (cmd->speed/5, cmd->speed, cmd->duration);
       }
       
       break;
@@ -58,9 +58,9 @@ json_str_handle_cmd (json_command *cmd)
       else
       {
         if(last_dir == M_DIR_FORWARD)
-          motor_turn (cmd->speed, cmd->speed/50, cmd->duration);
+          motor_turn (cmd->speed, cmd->speed/5, cmd->duration);
         else
-          motor_turn_backward (cmd->speed, cmd->speed/50, cmd->duration);
+          motor_turn_backward (cmd->speed, cmd->speed/5, cmd->duration);
       }
       break;
     default:
