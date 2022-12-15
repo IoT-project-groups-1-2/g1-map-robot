@@ -31,6 +31,8 @@ void
 vMovementTask( void *pvParameters)
 {
   int distance = 0;
+  TickType_t prev_timestamp = 0;
+  TickType_t cur_timestamp = 0;
   json_command command;
   command.direction = 0;
   command.duration = 0;
@@ -88,10 +90,16 @@ vMovementTask( void *pvParameters)
     {
       json_str_handle_cmd(&command);
     }
+
+    cur_timestamp = xTaskGetTickCount();
     //Send mqtt message:
-    char status_message[400] = { 0 };
-    const int message_len= snprintf (status_message, 400, "{\"status\":%d,\"distance\":%d}", 1, distance);
-    print_mqtt ("t_status", "%.*s", message_len, status_message);
+    if(cur_timestamp - prev_timestamp > 100)
+    {
+      prev_timestamp = cur_timestamp;
+      char status_message[400] = { 0 };
+      const int message_len= snprintf (status_message, 400, "{\"status\":%d,\"distance\":%d}", 1, distance);
+      print_mqtt ("t_status", "%.*s", message_len, status_message);
+    }
 
     //Block here to allow idle task to run for a bit.
     vTaskDelay(1);
