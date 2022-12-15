@@ -32,6 +32,31 @@ void MQTTSendTaskInit(void)
   received_settings_mqtt = xQueueCreate(MAX_MESSAGE, sizeof(json_command));
 }
 
+static void MQTT_WIFI_reconnect(MQTTClient * client,
+                                Network * net, 
+                                MQTTPacket_connectData * cd)
+{
+    int rc;
+    if (!MQTTIsConnected(client)) 
+    {
+        printf("Connection lost, trying to reconnect...\n"
+               "This may take a while, please have a cup of coffee meanwhile :)\n");
+        while ( (rc = NetworkConnect(net, MQTT_BROKER, 1883)) != 0)
+        {
+            printf("Return code from network connect is %d\n", rc);
+            vTaskDelay(1000);
+        }
+        printf("Network reconnection established");
+            
+        while ((rc = MQTTConnect(client, cd)) != 0 ) 
+        {
+            printf("Return code from MQTTconnect is %d\n", rc);
+            vTaskDelay(1000);
+        }
+        printf("MQTT connection established.");
+    }
+}
+
 // MQTT test
 static void
 handler(MessageData *msg)
@@ -49,7 +74,7 @@ handler(MessageData *msg)
 
   mqtt_json_cmd.direction = (MotorDirection)dir;
   mqtt_json_cmd.speed = speed;
-  mqtt_json_cmd.duration = 0;
+  mqtt_json_cmd.duration = dur;
   mqtt_json_cmd.forced_stop = forced_stop;
   printf("Current:\n"
          "Dir: %d\n"
@@ -81,7 +106,7 @@ void MQTTSendTask(void *pvParameters)
 
   NetworkInit(&network, NETWORK_SSID, NETWORK_PASSWORD);
 
-  MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf,
+  MQTTClientInit(&client, &network, 5000, sendbuf, sizeof(sendbuf), readbuf,
                  sizeof(readbuf));
 
   char *address = MQTT_BROKER;
@@ -130,6 +155,8 @@ void MQTTSendTask(void *pvParameters)
     {
       msg.free(msg.message);
     }
+    
+    MQTT_WIFI_reconnect(&client, &network, &connectData);
   }
 
   /* do not return */
