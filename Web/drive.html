@@ -38,37 +38,14 @@
         label{
             font-size: 30px;
         }
-        .slider{
+        .info{
             text-align: center;
             margin-top: 100px;
         }
         output{
             font-size: 30px;
-            /*border: 2px solid black;*/
             text-align: center;
         }
-        /*
-        input[type=range]{
-            appearance: auto;
-            -webkit-appearance: none;
-            border-radius: 3px;
-            width: 130px;
-            height: 20px;
-            outline: none;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-            margin: 10px;
-            background: darkgrey;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            appearance: auto;
-            -webkit-appearance: none;
-            width:10px;
-            height: 35px;
-            border-radius: 3px;
-            background: black;
-            box-shadow: 1px 2px 3px rgba(0,0,0,0.6);
-        }
-        */
         #note{
             display: none;
             color: red;
@@ -98,8 +75,10 @@
             font-size: 30px;
         }
         #f_stop{
-            background-color: darkgray;
+            background-color: black;
+            color: white;
             font-size: large;
+            padding: 5px 10px;
         }
         @keyframes noting{
             from {color: transparent;}
@@ -114,7 +93,7 @@
         <span id="st">Robot status </span>
         <button type="button" id="status" value="0"></button>
         <br><br>
-        <button type="button" id="f_stop" name="KeyZ" value="0">Force stop</button>
+        <button type="button" id="f_stop" name="KeyZ" value="1">Obstacle detection ON</button>
     </div>
     <div class="buttons">
         <button type="button" class="button" id="f" name="KeyW" value="0">&#129153;</button>
@@ -125,51 +104,38 @@
         <br>
         <button type="button" class="button" id="b" name="KeyS" value="1">&#129155;</button>        
     </div>
-    <div class="slider">
-        <span id="note">Forced stop activated</span>
+    <div class="info">
+        <span id="note">!! Safe drive is not activated !!</span>
         <br><br>
         <label for="show_speed" id="sp">Current speed: </label>
-        <!--<input type="hidden" id="speed" min="0" max="250" onchange="show_speed.value=this.value" value="0">-->
         <output id="show_speed" value="0">0</output>
         <br>
-        <label for="show_dist" id="sd">Distance to object: </label>
-        <input type="hidden" id="dist" min="0" max="12000" onchange="show_dist.value=this.value" value="0">
+        <label for="show_dist" id="sd">Distance to object (cm): </label>
         <output id="show_dist" value="0">0</output>
-        <!--<label for="dur">Set sensitivity</label>
-        <input type="range" id="dur" min="0" max="2000" step="100" oninput="show_dur.value=this.value" value="100">
-        <output id="show_dur">100</output>-->
-    </div>  
-    
+    </div>      
     
     <script>
-        const client = new Paho.MQTT.Client("192.168.1.136", Number(9000), "drive"); //127.0.0.1
+        const client = new Paho.MQTT.Client("127.0.0.1", Number(9000), "drive"); //127.0.0.1 192.168.1.136
         let key;
         let last_key = 'KeyW';
-        let speed = 0;
+        let speed = 60;
         let send_speed = 0;
         let command = 0;
         const max_speed = 250;
-        const ch_sp = 10;
-        const duration = 0;
+        const ch_sp = 30;
         let distance = 0;
-        let status = 0;
+        let timer = 0;
         let data;
 
         client.onConnectionLost = onConnectionLost;
         client.onMessageArrived = onMessageArrived;
 
-        // connect the client
-        client.connect({onSuccess:onConnect,
-                        userName: 'SmartIotMQTT',
-                        password: 'SmartIot'});
-
+        MQTTconnect();
         // called when the client connects
         function onConnect() {
-            // Once a connection has been made, make a subscription
             console.log("Drive connected");
-            client.subscribe("t_status");
-            //client.subscribe("location");
-            //client.subscribe("t_command");           
+            // Once a connection has been made, make a subscription            
+            client.subscribe("t_status");         
         }
 
         // called when the client loses its connection
@@ -177,6 +143,14 @@
             if (responseObject.errorCode !== 0) {
                 console.log("onConnectionLost:"+responseObject.errorMessage);
             }
+            setTimeout(MQTTconnect(), 2000);
+        }
+
+        function MQTTconnect(){
+            // connect the client
+            client.connect({onSuccess:onConnect,
+                        userName: 'SmartIotMQTT',
+                        password: 'SmartIot'});
         }
 
         // called when a message arrives
@@ -191,8 +165,15 @@
                     state.value = 0;
                     state.style.backgroundColor = 'red';
                 }
+                // If the robot is stopped due to an obstacle speed is caught from the robot and saved as a new speed value
+                if(f_stop.value == 1 && data.speed === 0){
+                    speed = data.speed;
+                }
+                // Distance and speed values from the robot and displaying them on the screen
                 document.getElementById('show_dist').value = data.distance;
+                document.getElementById('show_speed').value = data.speed;
             }
+            timer = 0;
             console.log(data);
         }
         
@@ -205,6 +186,7 @@
         note = document.getElementById('note');
         f_stop = document.getElementById('f_stop');
 
+        // Event listeners for on-screen buttons. Buttons are named after keyboard button codes to synchronize the usage.
         btn_fw.addEventListener('click', ()=>{
             key = btn_fw.name;
             move(key);
@@ -225,15 +207,13 @@
             key = btn_stop.name;
             move(key);
         });        
-        state.addEventListener('click', ()=>{
-            console.log('Status request');
-            setStatus();
-        });
+        
         f_stop.addEventListener('click', ()=>{
             if(f_stop.value == 1){                
                 f_stop.value = 0;
                 f_stop.style.backgroundColor = "darkgrey";
-                note.style.display = "none";
+                f_stop.innerHTML = "Obstacle detection OFF";
+                note.style.display = "block";
                 console.log(f_stop.value);
                 console.log(distance);
             }
@@ -241,37 +221,48 @@
                 f_stop.value = 1;
                 f_stop.style.backgroundColor = "black"
                 f_stop.style.color = "white";
-                note.style.display = "block";
+                f_stop.innerHTML = "Obstacle detection ON";
+                note.style.display = "none";
                 console.log(f_stop.value);
             }
             key = f_stop.name;
         });
 
-        function setStatus(){
-            let msg = {
-                    "status": 1
-                    }
-            message = new Paho.MQTT.Message(JSON.stringify(msg));
-            message.destinationName = "t_status";
-            client.send(message);
-        }
-
+        // Event listeners for keyboard actions
         document.body.addEventListener('keydown', getKey);
-
-        //setInterval(getStatus, 1000);
-
-        function getStatus(){
-            document.getElementById('show_dist').value = distance;
-            console.log("Get status");
-        }
+        document.body.addEventListener('keyup', moveAfterTurn);
 
         function getKey(e){
             key = e.code;
             move(key);
         }
 
+        function moveAfterTurn(){
+            if(key === 'KeyA' || key === 'KeyD'){
+                if(speed <= 0){
+                    key = 'KeyS'
+                }
+                else{
+                    key = 'KeyW';
+                }
+                move(key);
+            }
+        }
+
+        // Status state checked every second to know if robot has valid connection mqtt broker. Timer is zeroed every time message is 
+        // received, if no messages are received in 10s, user is notified on the screen with red status color.
+        setInterval(checkStatus, 1000);
+
+        function checkStatus(){
+            timer += 1;
+            if(timer > 10){
+                state.value = 0;
+                state.style.backgroundColor = 'red';
+            }
+        }
+
+        // Functionality to convert button presses to numerical values and move the robot
         function move(key){
-            let command;
             switch(key){
                 case 'KeyW':
                     btn_fw.focus();
@@ -279,8 +270,7 @@
                 break;
                 case 'KeyS':
                     btn_bw.focus();
-                    command = parseInt(btn_bw.value);
-                    
+                    command = parseInt(btn_bw.value);                    
                 break;
                 case 'KeyD':
                     btn_right.focus();
@@ -297,37 +287,32 @@
                 case 'KeyZ':
                     if(f_stop.value == 1){                
                         f_stop.value = 0;
-                        f_stop.style.backgroundColor = "darkgrey"
-                        note.style.display = "none";
-                        //console.log(f_stop.value);
+                        f_stop.style.backgroundColor = "darkgrey";
+                        f_stop.innerHTML = "Obstacle detection OFF";
+                        note.style.display = "block";
                     }
                     else{                
                         f_stop.value = 1;
-                        f_stop.style.backgroundColor = "black"
-                        note.style.display = "block";
-                        //console.log(f_stop.value);
+                        f_stop.style.backgroundColor = "black";
+                        f_stop.style.color = "white";
+                        f_stop.innerHTML = "Obstacle detection ON";
+                        note.style.display = "none";
                     }   
                 break;
             }
-
-            
+            // Moving the robot based on button presses
             if((last_key === 'KeyS' || last_key === 'KeyW')  && key === 'KeyW'){
                 speed += ch_sp;
                 if(speed > max_speed){
                     speed = max_speed;
                 }
-                if(speed < 0){
+                if(speed <= 0){
                     command = parseInt(btn_bw.value);
                 }                
                 else{
                     command = parseInt(btn_fw.value);
                 }
             }
-            /*
-            if(last_key === 'KeyS' && key === 'KeyW'){
-                speed = ch_sp;
-            }
-            */
             if((last_key === 'KeyS' || last_key === 'KeyW') && key === 'KeyS'){
                 speed -= ch_sp;     
                 if((speed * -1) > max_speed){
@@ -339,12 +324,7 @@
                 else{
                     command = parseInt(btn_fw.value);
                 }                
-            }
-            /*
-            if(last_key !== key && f_stop === 1){
-                speed = 10;
-            }*/
-            
+            }              
             if(key === 'KeyQ'){
                 speed = 0;
             }                    
@@ -357,25 +337,22 @@
             else{
                 send_speed = speed;
             }
-            last_key = key;  
-            document.getElementById('show_speed').value = send_speed;  
-            sendMQTT(command);        
-            //console.log("Key: "+ key + ", Direction: " + command + " & speed: " + speed);
+            last_key = key;   
+            sendMQTT();        
         }       
 
-        function sendMQTT(command){
+        // Creating and sending the mqtt message
+        function sendMQTT(){
             let msg = {
                     "direction": command,
                     "speed": send_speed,
-                    "duration": duration,
                     "forced_stop": parseInt(f_stop.value)
                 }
-
+            // Mqtt messages can not be sent if robot doesn't have connection to mqtt broker
             if(state.value === "1"){
                 message = new Paho.MQTT.Message(JSON.stringify(msg));
                 message.destinationName = "t_command";
-                client.send(message);
-                console.log(message.payloadString);         
+                client.send(message);        
             }
         }
     </script>
