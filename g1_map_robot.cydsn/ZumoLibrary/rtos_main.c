@@ -31,31 +31,25 @@
 #define START_MQTT 0
 #endif
 
-int
-main (void)
+int main(void)
 {
   // Initialization/startup code. //
-  prvHardwareSetup ();
+  prvHardwareSetup();
 
   // Task creation //
 
 #if START_MQTT
-  (void)xTaskCreate (MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10, NULL,
-                     tskIDLE_PRIORITY + 2, NULL);
+  (void)xTaskCreate(MQTTSendTask, "MQTT_send", configMINIMAL_STACK_SIZE * 10, NULL,
+                    tskIDLE_PRIORITY + 2, NULL);
 #endif
 
-#if ZUMO_SIMULATOR
-  (void)xTaskCreate (SimulatorTask, "Simulator", configMINIMAL_STACK_SIZE * 10,
-                     NULL, tskIDLE_PRIORITY + 2, NULL);
-#endif
-
-  //Heavy relies on mqtt, so if mqtt is not started then functionality is very limited.
-  (void)xTaskCreate (vMovementTask, "Movement_handler", configMINIMAL_STACK_SIZE * 10, NULL,
-                     tskIDLE_PRIORITY + 1, NULL);
+  // Heavy relies on mqtt, so if mqtt is not started then functionality is very limited.
+  (void)xTaskCreate(vMovementTask, "Movement_handler", configMINIMAL_STACK_SIZE * 10, NULL,
+                    tskIDLE_PRIORITY + 1, NULL);
 
   /* Will only get here if there was insufficient memory to create the idle
 task.  The idle task is created within vTaskStartScheduler(). */
-  vTaskStartScheduler ();
+  vTaskStartScheduler();
 
   /* Should never reach here as the kernel will now be running.  If
   vTaskStartScheduler() does return then it is very likely that there was

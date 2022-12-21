@@ -33,30 +33,30 @@ void MQTTSendTaskInit(void)
 }
 static void handler(MessageData *msg);
 
-static void MQTT_WIFI_reconnect(MQTTClient * client,
-                                Network * net, 
-                                MQTTPacket_connectData * cd)
+static void MQTT_WIFI_reconnect(MQTTClient *client,
+                                Network *net,
+                                MQTTPacket_connectData *cd)
 {
-    int rc;
-    if (!MQTTIsConnected(client)) 
+  int rc;
+  if (!MQTTIsConnected(client))
+  {
+    printf("Connection lost, trying to reconnect...\n"
+           "This may take a while, please have a cup of coffee meanwhile :)\n");
+    while ((rc = NetworkConnect(net, MQTT_BROKER, 1883)) != 0)
     {
-        printf("Connection lost, trying to reconnect...\n"
-               "This may take a while, please have a cup of coffee meanwhile :)\n");
-        while ( (rc = NetworkConnect(net, MQTT_BROKER, 1883)) != 0)
-        {
-            printf("Return code from network connect is %d\n", rc);
-            vTaskDelay(1000);
-        }
-        printf("Network reconnection established");
-            
-        while ((rc = MQTTConnect(client, cd)) != 0 ) 
-        {
-            printf("Return code from MQTTconnect is %d\n", rc);
-            vTaskDelay(1000);
-        }
-        printf("MQTT connection established.");
-        MQTTSubscribe(client, "t_command", QOS0, handler);
+      printf("Return code from network connect is %d\n", rc);
+      vTaskDelay(1000);
     }
+    printf("Network reconnection established");
+
+    while ((rc = MQTTConnect(client, cd)) != 0)
+    {
+      printf("Return code from MQTTconnect is %d\n", rc);
+      vTaskDelay(1000);
+    }
+    printf("MQTT connection established.");
+    MQTTSubscribe(client, "t_command", QOS0, handler);
+  }
 }
 
 // MQTT test
@@ -71,8 +71,7 @@ handler(MessageData *msg)
   int dir, speed, dur, forced_stop;
   json_str_int_from_context(json_raw, "direction", &dir);
   json_str_int_from_context(json_raw, "speed", &speed);
-  //json_str_int_from_context(json_raw, "duration", &dur);
-  json_str_int_from_context(json_raw, "forced_stop", &forced_stop); //0, 1
+  json_str_int_from_context(json_raw, "forced_stop", &forced_stop); // 0, 1
 
   mqtt_json_cmd.direction = (MotorDirection)dir;
   mqtt_json_cmd.speed = speed;
@@ -81,11 +80,9 @@ handler(MessageData *msg)
   printf("Current:\n"
          "Dir: %d\n"
          "Speed: %d\n"
-//         "Duration: %d\n"
          "Forced stop: %d\n",
          mqtt_json_cmd.direction,
          mqtt_json_cmd.speed,
-//         mqtt_json_cmd.duration,
          mqtt_json_cmd.forced_stop);
   // If queue is full, message will be lost.
   // Shouldn't happen though, since movement handler must execute it immediately.
@@ -157,7 +154,7 @@ void MQTTSendTask(void *pvParameters)
     {
       msg.free(msg.message);
     }
-    
+
     MQTT_WIFI_reconnect(&client, &network, &connectData);
   }
 
